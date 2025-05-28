@@ -1,0 +1,39 @@
+name: Build ESP-IDF Project
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install ESP-IDF prerequisites
+      run: sudo apt-get update && sudo apt-get install -y git wget flex bison gperf python3 python3-pip cmake ninja-build ccache libffi-dev libssl-dev dfu-util
+
+    - name: Clone ESP-IDF
+      run: |
+        git clone --recursive https://github.com/espressif/esp-idf.git
+        cd esp-idf
+        git checkout v5.1  # or your version
+        ./install.sh
+        echo "source $GITHUB_WORKSPACE/esp-idf/export.sh" >> $GITHUB_ENV
+
+    - name: Set environment variables
+      run: echo "IDF_PATH=$GITHUB_WORKSPACE/esp-idf" >> $GITHUB_ENV
+
+    - name: Build the project
+      run: |
+        source $GITHUB_WORKSPACE/esp-idf/export.sh
+        idf.py build
