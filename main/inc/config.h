@@ -1,6 +1,8 @@
 #ifndef __CONFIG_H__
 #define __CONFIG_H__
 
+#include "sdkconfig.h"
+
 #if CONFIG_EXAMPLE_LCD_CONTROLLER_ILI9341
 #include "esp_lcd_ili9341.h"
 #elif CONFIG_EXAMPLE_LCD_CONTROLLER_GC9A01
