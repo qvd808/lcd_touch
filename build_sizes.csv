@@ -1,0 +1,2 @@
+timestamp,bootloader_size,partition_table_size,main_binary_size,total_size,git_commit
+"2025-05-30 22:54:21 UTC",22000,3072,461760,486832,e4ecf9a
