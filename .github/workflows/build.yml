@@ -132,11 +132,23 @@ jobs:
       - name: Commit build size changes
         if: env.SIZES_CHANGED == 'true' && env.HAS_CHANGES == 'true'
         run: |
+          # Create/switch to build-data branch
+          git fetch origin build-data:build-data || git checkout -b build-data
+          git checkout build-data
+
+          # Move CSV to build-data branch if it doesn't exist there
+          if [ ! -f build_sizes.csv ]; then
+            git checkout main -- build_sizes.csv || echo "No CSV on main branch"
+          fi
+
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add build_sizes.csv
           git commit -m "Update build sizes - Bootloader: ${{ env.BOOTLOADER_SIZE }}B, Partition: ${{ env.PARTITION_SIZE }}B, Main: ${{ env.MAIN_BINARY_SIZE }}B, Total: ${{ env.TOTAL_SIZE }}B [skip ci]"
-          git push
+          git push origin build-data
+
+          # Switch back to main branch
+          git checkout main
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
