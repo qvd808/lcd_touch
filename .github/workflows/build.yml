@@ -27,6 +27,7 @@ jobs:
           submodules: 'recursive'
           token: ${{ secrets.GITHUB_TOKEN }}
           persist-credentials: true
+          fetch-depth: 0  # Fetch all history for all branches
 
       # ESP-IDF Build
       - name: ESP-IDF Build
@@ -40,11 +41,6 @@ jobs:
       - name: Extract binary sizes and create CSV
         run: |
           echo "=== Extracting binary file sizes ==="
-
-          # Create CSV header if file doesn't exist
-          if [ ! -f build_sizes.csv ]; then
-            echo "timestamp,bootloader_size,partition_table_size,main_binary_size,total_size,git_commit" > build_sizes.csv
-          fi
 
           # Get current timestamp
           TIMESTAMP=$(date -u '+%Y-%m-%d %H:%M:%S UTC')
@@ -83,72 +79,81 @@ jobs:
           echo "BOOTLOADER_SIZE=$BOOTLOADER_SIZE" >> $GITHUB_ENV
           echo "PARTITION_SIZE=$PARTITION_SIZE" >> $GITHUB_ENV
           echo "MAIN_BINARY_SIZE=$MAIN_BINARY_SIZE" >> $GITHUB_ENV
+          echo "TIMESTAMP=$TIMESTAMP" >> $GITHUB_ENV
+          echo "GIT_COMMIT=$GIT_COMMIT" >> $GITHUB_ENV
+
+      # Handle CSV creation and update on build-data branch
+      - name: Update build sizes CSV
+        run: |
+          # Configure git
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+
+          # Check if build-data branch exists
+          if git ls-remote --heads origin build-data | grep -q build-data; then
+            echo "build-data branch exists, checking it out"
+            git fetch origin build-data
+            git checkout build-data
+          else
+            echo "Creating new build-data branch"
+            git checkout -b build-data
+          fi
+
+          # Create CSV header if file doesn't exist
+          if [ ! -f build_sizes.csv ]; then
+            echo "timestamp,bootloader_size,partition_table_size,main_binary_size,total_size,git_commit" > build_sizes.csv
+            echo "Created new build_sizes.csv with header"
+          fi
 
           # Create new CSV entry
-          NEW_ENTRY="\"$TIMESTAMP\",$BOOTLOADER_SIZE,$PARTITION_SIZE,$MAIN_BINARY_SIZE,$TOTAL_SIZE,$GIT_COMMIT"
+          NEW_ENTRY="\"${{ env.TIMESTAMP }}\",${{ env.BOOTLOADER_SIZE }},${{ env.PARTITION_SIZE }},${{ env.MAIN_BINARY_SIZE }},${{ env.TOTAL_SIZE }},${{ env.GIT_COMMIT }}"
           echo "New entry: $NEW_ENTRY"
 
           # Check if this entry already exists (compare sizes and commit)
-          if [ -f build_sizes.csv ]; then
+          SIZES_CHANGED=true
+          if [ -f build_sizes.csv ] && [ $(wc -l < build_sizes.csv) -gt 1 ]; then
             LAST_ENTRY=$(tail -n 1 build_sizes.csv)
             LAST_SIZES=$(echo "$LAST_ENTRY" | cut -d',' -f2-5)
-            CURRENT_SIZES="$BOOTLOADER_SIZE,$PARTITION_SIZE,$MAIN_BINARY_SIZE,$TOTAL_SIZE"
+            CURRENT_SIZES="${{ env.BOOTLOADER_SIZE }},${{ env.PARTITION_SIZE }},${{ env.MAIN_BINARY_SIZE }},${{ env.TOTAL_SIZE }}"
 
             echo "Last entry sizes: $LAST_SIZES"
             echo "Current sizes: $CURRENT_SIZES"
 
             if [ "$LAST_SIZES" = "$CURRENT_SIZES" ]; then
               echo "No size changes detected - skipping CSV update"
-              echo "SIZES_CHANGED=false" >> $GITHUB_ENV
+              SIZES_CHANGED=false
             else
               echo "Size changes detected - will update CSV"
-              echo "$NEW_ENTRY" >> build_sizes.csv
-              echo "SIZES_CHANGED=true" >> $GITHUB_ENV
             fi
           else
-            echo "First build - creating CSV"
+            echo "First build or empty CSV - will add entry"
+          fi
+
+          # Add entry and commit if sizes changed
+          if [ "$SIZES_CHANGED" = true ]; then
             echo "$NEW_ENTRY" >> build_sizes.csv
             echo "SIZES_CHANGED=true" >> $GITHUB_ENV
-          fi
+            
+            # Display current CSV contents
+            echo "=== Updated build_sizes.csv ==="
+            cat build_sizes.csv
 
-          # Display current CSV contents
-          echo "=== Current build_sizes.csv ==="
-          cat build_sizes.csv
-
-      # Check if there are changes to commit
-      - name: Check for changes
-        id: git-check
-        run: |
-          git add build_sizes.csv
-          if git diff --staged --quiet; then
-            echo "No changes to commit"
-            echo "HAS_CHANGES=false" >> $GITHUB_ENV
+            # Commit changes
+            git add build_sizes.csv
+            if ! git diff --staged --quiet; then
+              git commit -m "Update build sizes - Bootloader: ${{ env.BOOTLOADER_SIZE }}B, Partition: ${{ env.PARTITION_SIZE }}B, Main: ${{ env.MAIN_BINARY_SIZE }}B, Total: ${{ env.TOTAL_SIZE }}B [skip ci]"
+              git push origin build-data
+              echo "Changes committed and pushed to build-data branch"
+            else
+              echo "No changes to commit"
+            fi
           else
-            echo "Changes detected in build_sizes.csv"
-            echo "HAS_CHANGES=true" >> $GITHUB_ENV
+            echo "SIZES_CHANGED=false" >> $GITHUB_ENV
           fi
-
-      # Commit and push changes only if sizes changed
-      - name: Commit build size changes
-        if: env.SIZES_CHANGED == 'true' && env.HAS_CHANGES == 'true'
-        run: |
-          # Create/switch to build-data branch
-          git fetch origin build-data:build-data || git checkout -b build-data
-          git checkout build-data
-
-          # Move CSV to build-data branch if it doesn't exist there
-          if [ ! -f build_sizes.csv ]; then
-            git checkout main -- build_sizes.csv || echo "No CSV on main branch"
-          fi
-
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add build_sizes.csv
-          git commit -m "Update build sizes - Bootloader: ${{ env.BOOTLOADER_SIZE }}B, Partition: ${{ env.PARTITION_SIZE }}B, Main: ${{ env.MAIN_BINARY_SIZE }}B, Total: ${{ env.TOTAL_SIZE }}B [skip ci]"
-          git push origin build-data
 
           # Switch back to main branch
           git checkout main
+
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -162,9 +167,17 @@ jobs:
             build/partition_table/partition-table.bin
             build/*.bin
 
-      # Upload CSV file as artifact too
+      # Upload CSV file as artifact (fetch from build-data branch)
       - name: Archive build sizes CSV
+        if: env.SIZES_CHANGED == 'true'
+        run: |
+          # Fetch the updated CSV from build-data branch
+          git fetch origin build-data
+          git show origin/build-data:build_sizes.csv > build_sizes_artifact.csv
+
+      - name: Upload CSV artifact
+        if: env.SIZES_CHANGED == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: build-sizes-csv
-          path: build_sizes.csv
+          path: build_sizes_artifact.csv
