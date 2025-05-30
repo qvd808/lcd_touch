@@ -78,6 +78,12 @@ jobs:
           TOTAL_SIZE=$((BOOTLOADER_SIZE + PARTITION_SIZE + MAIN_BINARY_SIZE))
           echo "Total binary size: $TOTAL_SIZE bytes"
 
+          # Export to GitHub environment for use in later steps
+          echo "TOTAL_SIZE=$TOTAL_SIZE" >> $GITHUB_ENV
+          echo "BOOTLOADER_SIZE=$BOOTLOADER_SIZE" >> $GITHUB_ENV
+          echo "PARTITION_SIZE=$PARTITION_SIZE" >> $GITHUB_ENV
+          echo "MAIN_BINARY_SIZE=$MAIN_BINARY_SIZE" >> $GITHUB_ENV
+
           # Create new CSV entry
           NEW_ENTRY="\"$TIMESTAMP\",$BOOTLOADER_SIZE,$PARTITION_SIZE,$MAIN_BINARY_SIZE,$TOTAL_SIZE,$GIT_COMMIT"
           echo "New entry: $NEW_ENTRY"
@@ -129,7 +135,7 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add build_sizes.csv
-          git commit -m "Update build sizes - Total: ${{ env.TOTAL_SIZE || 'Unknown' }} bytes [skip ci]"
+          git commit -m "Update build sizes - Bootloader: ${{ env.BOOTLOADER_SIZE }}B, Partition: ${{ env.PARTITION_SIZE }}B, Main: ${{ env.MAIN_BINARY_SIZE }}B, Total: ${{ env.TOTAL_SIZE }}B [skip ci]"
           git push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
