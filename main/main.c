@@ -4,9 +4,7 @@
  * SPDX-License-Identifier: CC0-1.0
  */
 #include "config.h"
-#include "esp_err.h"
 #include "esp_log.h"
-#include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "lvgl_display.h"
 #include "touch_controller.h"

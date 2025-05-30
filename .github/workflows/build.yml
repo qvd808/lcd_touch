@@ -98,6 +98,7 @@ jobs:
             echo "Creating new build-data branch"
             git checkout -b build-data
           fi
+          git pull origin main --rebase
 
           # Create CSV header if file doesn't exist
           if [ ! -f build_sizes.csv ]; then
@@ -133,7 +134,7 @@ jobs:
           if [ "$SIZES_CHANGED" = true ]; then
             echo "$NEW_ENTRY" >> build_sizes.csv
             echo "SIZES_CHANGED=true" >> $GITHUB_ENV
-            
+
             # Display current CSV contents
             echo "=== Updated build_sizes.csv ==="
             cat build_sizes.csv
