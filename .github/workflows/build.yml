@@ -24,6 +24,96 @@ jobs:
             esp_idf_version: v5.4.1
             esp_idf_target: esp32c6
 
+      - name: Check out repository to access existing CSV
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download previous binary sizes CSV (if exists)
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: binary-sizes-history
+          path: ./
+
+      - name: Extract binary sizes and conditionally log to CSV
+        id: extract-sizes
+        run: |
+          # Verify build files exist
+          if [ ! -f "build/bootloader/bootloader.bin" ] || [ ! -f "build/partition_table/partition-table.bin" ] || [ ! -f "build/${{ github.event.repository.name }}.bin" ]; then
+            echo "Error: Required build files not found"
+            echo "Looking for:"
+            echo "- build/bootloader/bootloader.bin"
+            echo "- build/partition_table/partition-table.bin" 
+            echo "- build/${{ github.event.repository.name }}.bin"
+            echo "Available files:"
+            find build -name "*.bin" -type f 2>/dev/null || echo "No .bin files found"
+            exit 1
+          fi
+          
+          # Create CSV header if file doesn't exist
+          if [ ! -f binary_sizes.csv ]; then
+            echo "timestamp,commit_sha,commit_message,bootloader_size_bytes,partition_table_size_bytes,main_binary_size_bytes,total_size_bytes" > binary_sizes.csv
+            echo "Created new binary_sizes.csv file"
+          else
+            echo "Found existing binary_sizes.csv file"
+          fi
+          
+          # Get file sizes in bytes
+          BOOTLOADER_SIZE=$(stat -c%s "build/bootloader/bootloader.bin")
+          PARTITION_SIZE=$(stat -c%s "build/partition_table/partition-table.bin")
+          MAIN_BINARY_SIZE=$(stat -c%s "build/${{ github.event.repository.name }}.bin")
+          TOTAL_SIZE=$((BOOTLOADER_SIZE + PARTITION_SIZE + MAIN_BINARY_SIZE))
+          
+          # Get current timestamp, commit SHA, and commit message
+          TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
+          COMMIT_SHA="${{ github.sha }}"
+          COMMIT_MESSAGE="${{ github.event.head_commit.message }}"
+          # Escape commas and quotes in commit message for CSV
+          COMMIT_MESSAGE=$(echo "$COMMIT_MESSAGE" | sed 's/,/;/g' | sed 's/"/\\"/g' | tr '\n' ' ')
+          
+          # Check if CSV has entries and get the latest sizes
+          SHOULD_ADD=true
+          if [ -f binary_sizes.csv ] && [ $(wc -l < binary_sizes.csv) -gt 1 ]; then
+            # Get the last line (most recent entry) and extract sizes
+            LAST_LINE=$(tail -n 1 binary_sizes.csv)
+            LAST_BOOTLOADER=$(echo "$LAST_LINE" | cut -d',' -f4)
+            LAST_PARTITION=$(echo "$LAST_LINE" | cut -d',' -f5)
+            LAST_MAIN_BINARY=$(echo "$LAST_LINE" | cut -d',' -f6)
+            LAST_TOTAL=$(echo "$LAST_LINE" | cut -d',' -f7)
+            
+            # Compare sizes
+            if [ "$BOOTLOADER_SIZE" -eq "$LAST_BOOTLOADER" ] && \
+               [ "$PARTITION_SIZE" -eq "$LAST_PARTITION" ] && \
+               [ "$MAIN_BINARY_SIZE" -eq "$LAST_MAIN_BINARY" ]; then
+              SHOULD_ADD=false
+              echo "Binary sizes unchanged from previous build - skipping CSV entry"
+              echo "Previous: Bootloader=$LAST_BOOTLOADER, Partition=$LAST_PARTITION, Main=$LAST_MAIN_BINARY, Total=$LAST_TOTAL"
+            else
+              echo "Binary sizes changed from previous build:"
+              echo "Previous: Bootloader=$LAST_BOOTLOADER, Partition=$LAST_PARTITION, Main=$LAST_MAIN_BINARY, Total=$LAST_TOTAL"
+              echo "Current:  Bootloader=$BOOTLOADER_SIZE, Partition=$PARTITION_SIZE, Main=$MAIN_BINARY_SIZE, Total=$TOTAL_SIZE"
+            fi
+          else
+            echo "No previous binary size data found - will add first entry"
+          fi
+          
+          # Add to CSV only if sizes changed or it's the first entry
+          if [ "$SHOULD_ADD" = true ]; then
+            echo "\"$TIMESTAMP\",\"$COMMIT_SHA\",\"$COMMIT_MESSAGE\",$BOOTLOADER_SIZE,$PARTITION_SIZE,$MAIN_BINARY_SIZE,$TOTAL_SIZE" >> binary_sizes.csv
+            echo "Added new entry to binary_sizes.csv"
+          fi
+          
+          # Always display current sizes for visibility in logs
+          echo "Current Binary Sizes:"
+          echo "Bootloader: $BOOTLOADER_SIZE bytes"
+          echo "Partition Table: $PARTITION_SIZE bytes"
+          echo "Main Binary: $MAIN_BINARY_SIZE bytes"
+          echo "Total: $TOTAL_SIZE bytes"
+          
+          # Set output for conditional artifact upload
+          echo "should_upload_csv=$SHOULD_ADD" >> $GITHUB_OUTPUT
+
       - name: Archive build output artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -32,3 +122,11 @@ jobs:
             build/bootloader/bootloader.bin
             build/partition_table/partition-table.bin
             build/${{ github.event.repository.name }}.bin
+
+      - name: Upload binary sizes history
+        if: steps.extract-sizes.outputs.should_upload_csv == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: binary-sizes-history
+          path: binary_sizes.csv
+          retention-days: 90
