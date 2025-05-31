@@ -1,2 +1,3 @@
 timestamp,commit,total_size,bootloader_size,app_size,partition_table_size
 2025-05-31 08:16:11 UTC,c42f03c,486832,22000,461760,3072
+2025-05-31 08:22:30 UTC,6f7eba8,486912,22000,461840,3072
