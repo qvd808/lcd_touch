@@ -1,150 +1,218 @@
 #!/bin/bash
-# .github/scripts/update_build_data.sh
-# Handle CSV creation and update on build-data branch (data-only orphan branch)
+
+# update_build_data.sh
+# Safely update build data while ensuring only README.md and build_data.csv exist
 
 set -e
 
-echo "=== Updating build data CSV ==="
+echo "📊 Updating build data in clean build_data branch"
 
-# Configure git
-git config --local user.email "action@github.com"
-git config --local user.name "GitHub Action"
+# Configuration
+BRANCH_NAME="build_data"
+BUILD_DATA_FILE="build_data.csv"
+README_FILE="README.md"
 
-# Save current commit for later reference
-ORIGINAL_COMMIT=$(git rev-parse HEAD)
+# Store current branch
+CURRENT_BRANCH=$(git branch --show-current)
+echo "📍 Current branch: $CURRENT_BRANCH"
 
-# Check if build-data branch exists
-if git ls-remote --heads origin build-data | grep -q build-data; then
-  # Stash any local changes before switching branches
-  echo "Stashing local changes..."
-  git stash push -m "CI: Auto-stash before build-data checkout" || true
+# Function to cleanup and exit
+cleanup_and_exit() {
+    local exit_code=$1
+    echo "🔄 Returning to original branch: $CURRENT_BRANCH"
+    git checkout "$CURRENT_BRANCH" 2>/dev/null || true
+    exit $exit_code
+}
 
-  echo "build-data branch exists, checking it out"
-  git fetch origin build-data
-  git checkout build-data
+# Trap to ensure we return to original branch on exit
+trap 'cleanup_and_exit $?' EXIT
 
-  # Clean up any project files that might have accidentally been added
-  find . -maxdepth 1 -type f ! -name "*.csv" ! -name "*.md" ! -name ".git*" -delete 2>/dev/null || true
-  find . -maxdepth 1 -type d ! -name ".git" ! -name "." -exec rm -rf {} + 2>/dev/null || true
+# Validate required environment variables
+if [ -z "$TOTAL_SIZE" ] || [ -z "$GIT_COMMIT" ]; then
+    echo "❌ Required environment variables not set (TOTAL_SIZE, GIT_COMMIT)"
+    exit 1
+fi
+
+# Get additional size information if available
+BOOTLOADER_SIZE=${BOOTLOADER_SIZE:-"0"}
+APP_SIZE=${APP_SIZE:-"0"}
+PARTITION_TABLE_SIZE=${PARTITION_TABLE_SIZE:-"0"}
+
+# Create timestamp
+TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
+
+echo "📋 Build data to record:"
+echo "  - Timestamp: $TIMESTAMP"
+echo "  - Commit: $GIT_COMMIT"
+echo "  - Total Size: $TOTAL_SIZE bytes"
+echo "  - Bootloader Size: $BOOTLOADER_SIZE bytes"
+echo "  - App Size: $APP_SIZE bytes"
+echo "  - Partition Table Size: $PARTITION_TABLE_SIZE bytes"
+
+# Fetch the build_data branch or create it
+if ! git show-ref --verify --quiet refs/remotes/origin/$BRANCH_NAME; then
+    echo "🌿 Creating new $BRANCH_NAME branch"
+    git checkout --orphan $BRANCH_NAME
+    
+    # Remove all files from the new orphan branch
+    git rm -rf . 2>/dev/null || true
+    
+    # Create initial README.md
+    cat > $README_FILE << 'EOF'
+# Build Data
+
+This branch contains build size tracking data for the ESP-IDF project.
+
+## Files
+
+- `build_data.csv` - Historical build size data
+- `README.md` - This documentation file
+
+## Purpose
+
+This branch tracks binary size changes over time to help monitor firmware growth and optimize builds.
+
+## Data Format
+
+The CSV contains the following columns:
+- `timestamp` - When the build was completed (UTC)
+- `commit` - Git commit hash
+- `total_size` - Total binary size in bytes
+- `bootloader_size` - Bootloader binary size in bytes
+- `app_size` - Application binary size in bytes
+- `partition_table_size` - Partition table size in bytes
+EOF
+    
+    # Create initial build_data.csv with headers
+    echo "timestamp,commit,total_size,bootloader_size,app_size,partition_table_size" > $BUILD_DATA_FILE
+    
+    git add $README_FILE $BUILD_DATA_FILE
+    git commit -m "Initialize build_data branch
+
+- Added README.md with documentation
+- Added build_data.csv with column headers
+- This branch will only contain these two files"
+    
+    echo "✅ Created and initialized $BRANCH_NAME branch"
+    
 else
-  echo "Creating new orphan build-data branch (data-only)"
-  git checkout --orphan build-data
+    echo "🔄 Fetching and switching to $BRANCH_NAME branch"
+    git fetch origin $BRANCH_NAME
+    git checkout $BRANCH_NAME
+    
+    # Verify branch integrity - only allowed files should exist
+    ALL_FILES=($(git ls-files))
+    ALLOWED_FILES=("$README_FILE" "$BUILD_DATA_FILE")
+    
+    echo "🔍 Verifying branch integrity..."
+    unauthorized_files=()
+    
+    for file in "${ALL_FILES[@]}"; do
+        file_allowed=false
+        for allowed in "${ALLOWED_FILES[@]}"; do
+            if [ "$file" == "$allowed" ]; then
+                file_allowed=true
+                break
+            fi
+        done
+        
+        if [ "$file_allowed" == false ]; then
+            unauthorized_files+=("$file")
+        fi
+    done
+    
+    # Remove unauthorized files if found
+    if [ ${#unauthorized_files[@]} -gt 0 ]; then
+        echo "🗑️  Found unauthorized files, removing them:"
+        for file in "${unauthorized_files[@]}"; do
+            echo "  - Removing: $file"
+            git rm "$file"
+        done
+        
+        git commit -m "Clean unauthorized files from build_data branch
 
-  # Remove all files from the orphan branch
-  git rm -rf . 2>/dev/null || true
+Removed unauthorized files:
+$(printf '- %s\n' "${unauthorized_files[@]}")
 
-  # Clear any staged changes
-  git reset --hard
+Only README.md and build_data.csv are allowed in this branch."
+        
+        echo "✅ Cleaned ${#unauthorized_files[@]} unauthorized files"
+    fi
+    
+    # Ensure required files exist
+    if [ ! -f "$BUILD_DATA_FILE" ]; then
+        echo "📊 Creating missing $BUILD_DATA_FILE"
+        echo "timestamp,commit,total_size,bootloader_size,app_size,partition_table_size" > $BUILD_DATA_FILE
+        git add $BUILD_DATA_FILE
+    fi
+    
+    if [ ! -f "$README_FILE" ]; then
+        echo "📝 Creating missing $README_FILE"
+        cat > $README_FILE << 'EOF'
+# Build Data
+
+This branch contains build size tracking data for the ESP-IDF project.
+
+## Files
+
+- `build_data.csv` - Historical build size data
+- `README.md` - This documentation file
+
+## Purpose
+
+This branch tracks binary size changes over time to help monitor firmware growth and optimize builds.
+EOF
+        git add $README_FILE
+    fi
 fi
 
-# Create CSV header if file doesn't exist
-if [ ! -f build_sizes.csv ]; then
-  echo "timestamp,bootloader_size,partition_table_size,main_binary_size,total_size,git_commit,branch" > build_sizes.csv
-  echo "Created new build_sizes.csv with header"
+# Add new build data entry
+echo "📝 Adding new build data entry..."
+NEW_ENTRY="\"$TIMESTAMP\",$GIT_COMMIT,$TOTAL_SIZE,$BOOTLOADER_SIZE,$APP_SIZE,$PARTITION_TABLE_SIZE"
+echo "$NEW_ENTRY" >> $BUILD_DATA_FILE
+
+# Check if this is a duplicate entry (same commit)
+DUPLICATE_LINES=$(grep -c ",$GIT_COMMIT," $BUILD_DATA_FILE || true)
+if [ "$DUPLICATE_LINES" -gt 1 ]; then
+    echo "⚠️  Found duplicate entries for commit $GIT_COMMIT, keeping only the latest"
+    # Keep header + remove all lines with this commit + add our new entry
+    head -1 $BUILD_DATA_FILE > temp_build_data.csv
+    grep -v ",$GIT_COMMIT," $BUILD_DATA_FILE | tail -n +2 >> temp_build_data.csv || true
+    echo "$NEW_ENTRY" >> temp_build_data.csv
+    mv temp_build_data.csv $BUILD_DATA_FILE
 fi
 
-# Calculate entry count for README
-ENTRY_COUNT=0
-if [ -f build_sizes.csv ] && [ $(wc -l < build_sizes.csv) -gt 1 ]; then
-  ENTRY_COUNT=$(($(wc -l < build_sizes.csv) - 1))
-fi
+# Sort by timestamp (keeping header)
+echo "🔄 Sorting build data by timestamp..."
+head -1 $BUILD_DATA_FILE > temp_sorted.csv
+tail -n +2 $BUILD_DATA_FILE | sort -t',' -k1 >> temp_sorted.csv
+mv temp_sorted.csv $BUILD_DATA_FILE
 
-# Always ensure README.md exists and is up-to-date with current stats
-cat > README.md << EOL
-# Build Data Branch
+# Commit the changes
+git add $BUILD_DATA_FILE
+git commit -m "Update build data for commit $GIT_COMMIT
 
-This branch contains only build-related data and metrics for the ESP-IDF project.
+- Total size: $TOTAL_SIZE bytes
+- Bootloader: $BOOTLOADER_SIZE bytes  
+- App: $APP_SIZE bytes
+- Partition table: $PARTITION_TABLE_SIZE bytes
+- Timestamp: $TIMESTAMP"
 
-## Files:
-- \`build_sizes.csv\` - Historical build size data
-- \`README.md\` - This file
+# Final verification that only authorized files exist
+FINAL_FILES=($(git ls-files))
+echo "🔍 Final verification - files in branch:"
+for file in "${FINAL_FILES[@]}"; do
+    if [ "$file" == "$README_FILE" ] || [ "$file" == "$BUILD_DATA_FILE" ]; then
+        echo "  ✅ $file (authorized)"
+    else
+        echo "  ❌ $file (unauthorized - this should not happen!)"
+        exit 1
+    fi
+done
 
-## Statistics:
-- Total build records: ${ENTRY_COUNT}
-- Last updated: $(date -u '+%Y-%m-%d %H:%M:%S UTC')
-- Source commit: ${GIT_COMMIT}
+# Push the changes
+echo "📤 Pushing updated build data..."
+git push origin $BRANCH_NAME
 
-## CSV Format:
-\`\`\`
-timestamp,bootloader_size,partition_table_size,main_binary_size,total_size,git_commit,branch
-\`\`\`
-
-This is an orphan branch with no connection to the main project code.
-EOL
-
-# Create new CSV entry
-NEW_ENTRY="\"${TIMESTAMP}\",${BOOTLOADER_SIZE},${PARTITION_SIZE},${MAIN_BINARY_SIZE},${TOTAL_SIZE},${GIT_COMMIT},main"
-echo "New entry: $NEW_ENTRY"
-
-# Check if this entry already exists (compare commit)
-SIZES_CHANGED=true
-if [ -f build_sizes.csv ] && [ $(wc -l < build_sizes.csv) -gt 1 ]; then
-  LAST_ENTRY=$(tail -n 1 build_sizes.csv)
-  LAST_COMMIT=$(echo "$LAST_ENTRY" | cut -d',' -f6)
-  CURRENT_COMMIT="${GIT_COMMIT}"
-
-  echo "Last commit: $LAST_COMMIT"
-  echo "Current commit: $CURRENT_COMMIT"
-
-  if [ "$LAST_COMMIT" = "$CURRENT_COMMIT" ]; then
-	echo "Same commit as last entry - skipping CSV update"
-	SIZES_CHANGED=false
-  else
-	echo "New commit detected - will update CSV"
-  fi
-else
-  echo "First build or empty CSV - will add entry"
-fi
-
-# Add entry and commit if sizes changed
-if [ "$SIZES_CHANGED" = true ]; then
-  echo "$NEW_ENTRY" >> build_sizes.csv
-  echo "SIZES_CHANGED=true" >> $GITHUB_ENV
-  
-  # Recalculate entry count after adding new entry
-  ENTRY_COUNT=$(($(wc -l < build_sizes.csv) - 1))
-  
-  # Update README.md with new stats
-  cat > README.md << EOL
-# Build Data Branch
-
-This branch contains only build-related data and metrics for the ESP-IDF project.
-
-## Files:
-- \`build_sizes.csv\` - Historical build size data
-- \`README.md\` - This file
-
-## Statistics:
-- Total build records: ${ENTRY_COUNT}
-- Last updated: $(date -u '+%Y-%m-%d %H:%M:%S UTC')
-- Source commit: ${GIT_COMMIT}
-
-## CSV Format:
-\`\`\`
-timestamp,bootloader_size,partition_table_size,main_binary_size,total_size,git_commit,branch
-\`\`\`
-
-This is an orphan branch with no connection to the main project code.
-EOL
-  
-  # Display current CSV contents (last 10 lines)
-  echo "=== Updated build_sizes.csv (last 10 entries) ==="
-  tail -n 10 build_sizes.csv
-
-  # Commit changes
-  git add .
-  if ! git diff --staged --quiet; then
-	git commit -m "Add build data: Total ${TOTAL_SIZE}B (commit ${GIT_COMMIT})"
-	git push origin build-data
-	echo "Changes committed and pushed to build-data branch"
-  else
-	echo "No changes to commit"
-  fi
-else
-  echo "SIZES_CHANGED=false" >> $GITHUB_ENV
-fi
-
-# Switch back to main branch
-git checkout "$ORIGINAL_COMMIT"
-
-echo "✅ Build data update completed"
+echo "✅ Successfully updated build data branch with only authorized files"
+echo "📊 Build data entry added for commit: $GIT_COMMIT"

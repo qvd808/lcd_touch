@@ -48,6 +48,18 @@ jobs:
           persist-credentials: true
           fetch-depth: 0
 
+      - name: Configure Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Clean build_data branch
+        run: |
+          chmod +x .github/scripts/clean_build_data_branch.sh
+          .github/scripts/clean_build_data_branch.sh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: ESP-IDF Build
         uses: espressif/esp-idf-ci-action@v1
         with:
@@ -60,37 +72,56 @@ jobs:
         run: |
           chmod +x .github/scripts/extract_sizes.sh
           .github/scripts/extract_sizes.sh
-          # Export the sizes for later steps
           echo "CURRENT_TOTAL_SIZE=${TOTAL_SIZE}" >> $GITHUB_ENV
           echo "CURRENT_GIT_COMMIT=${GIT_COMMIT}" >> $GITHUB_ENV
 
-      - name: Check for size changes and set upload flag
-        id: check_upload
-        run: |
-          # Always set upload flag if sizes changed
-          if [ "$SIZES_CHANGED" == "true" ]; then
-            echo "FORCE_UPLOAD=true" >> $GITHUB_ENV
-            echo "Upload required: File sizes have changed"
-            echo "upload_required=true" >> $GITHUB_OUTPUT
-          else
-            echo "upload_required=false" >> $GITHUB_OUTPUT
-          fi
-          
-          # Also upload on manual dispatch
-          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
-            echo "FORCE_UPLOAD=true" >> $GITHUB_ENV
-            echo "Upload required: Manual workflow dispatch"
-            echo "upload_required=true" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Update build data
+      - name: Update build data (clean branch)
         run: |
           chmod +x .github/scripts/update_build_data.sh
           .github/scripts/update_build_data.sh
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # Primary artifact upload - guaranteed when sizes change
+      - name: Verify build_data branch integrity
+        run: |
+          # Switch to build_data branch and verify only allowed files exist
+          git stash
+          git fetch origin build_data:build_data 2>/dev/null || echo "build_data branch will be created"
+          if git show-ref --verify --quiet refs/heads/build_data; then
+            git checkout build_data
+            
+            echo "🔍 Verifying build_data branch contains only authorized files..."
+            ALL_FILES=($(git ls-files))
+            ALLOWED_FILES=("README.md" "build_data.csv")
+            
+            unauthorized_found=false
+            for file in "${ALL_FILES[@]}"; do
+              file_allowed=false
+              for allowed in "${ALLOWED_FILES[@]}"; do
+                if [ "$file" == "$allowed" ]; then
+                  file_allowed=true
+                  break
+                fi
+              done
+              
+              if [ "$file_allowed" == false ]; then
+                echo "❌ Unauthorized file found: $file"
+                unauthorized_found=true
+              else
+                echo "✅ Authorized file: $file"
+              fi
+            done
+            
+            if [ "$unauthorized_found" == true ]; then
+              echo "❌ Build data branch contains unauthorized files!"
+              exit 1
+            else
+              echo "✅ Build data branch is clean - contains only README.md and build_data.csv"
+            fi
+            
+            git checkout main
+          fi
+
       - name: Archive ESP32 binaries (Size Changed)
         if: env.SIZES_CHANGED == 'true'
         uses: actions/upload-artifact@v4
@@ -103,7 +134,6 @@ jobs:
           retention-days: 30
           compression-level: 6
 
-      # Fallback artifact upload for manual dispatch
       - name: Archive ESP32 binaries (Manual Dispatch)
         if: github.event_name == 'workflow_dispatch' && env.SIZES_CHANGED != 'true'
         uses: actions/upload-artifact@v4
@@ -116,22 +146,12 @@ jobs:
           retention-days: 30
           compression-level: 6
 
-      # Verification step to ensure upload happened when expected
       - name: Verify upload completion
         if: env.SIZES_CHANGED == 'true'
         run: |
           echo "✅ Artifact upload completed successfully for size change"
           echo "📦 Artifact name: esp32-binaries-${{ env.CURRENT_GIT_COMMIT }}-${{ env.CURRENT_TOTAL_SIZE }}B-size-changed"
           echo "📏 Total size: ${{ env.CURRENT_TOTAL_SIZE }} bytes"
-
-      # Optional: Fail the workflow if upload was expected but didn't happen
-      - name: Validate upload requirement was met
-        run: |
-          if [ "$SIZES_CHANGED" == "true" ]; then
-            echo "Size change detected - upload was required and completed ✅"
-          else
-            echo "No size change detected - upload not required ℹ️"
-          fi
 
       - name: Create build summary
         run: |
