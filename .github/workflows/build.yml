@@ -60,6 +60,28 @@ jobs:
         run: |
           chmod +x .github/scripts/extract_sizes.sh
           .github/scripts/extract_sizes.sh
+          # Export the sizes for later steps
+          echo "CURRENT_TOTAL_SIZE=${TOTAL_SIZE}" >> $GITHUB_ENV
+          echo "CURRENT_GIT_COMMIT=${GIT_COMMIT}" >> $GITHUB_ENV
+
+      - name: Check for size changes and set upload flag
+        id: check_upload
+        run: |
+          # Always set upload flag if sizes changed
+          if [ "$SIZES_CHANGED" == "true" ]; then
+            echo "FORCE_UPLOAD=true" >> $GITHUB_ENV
+            echo "Upload required: File sizes have changed"
+            echo "upload_required=true" >> $GITHUB_OUTPUT
+          else
+            echo "upload_required=false" >> $GITHUB_OUTPUT
+          fi
+          
+          # Also upload on manual dispatch
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "FORCE_UPLOAD=true" >> $GITHUB_ENV
+            echo "Upload required: Manual workflow dispatch"
+            echo "upload_required=true" >> $GITHUB_OUTPUT
+          fi
 
       - name: Update build data
         run: |
@@ -68,16 +90,48 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Archive ESP32 binaries
-        if: env.SIZES_CHANGED == 'true' || github.event_name == 'workflow_dispatch'
+      # Primary artifact upload - guaranteed when sizes change
+      - name: Archive ESP32 binaries (Size Changed)
+        if: env.SIZES_CHANGED == 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: esp32-binaries-${{ env.GIT_COMMIT }}-${{ env.TOTAL_SIZE }}B
+          name: esp32-binaries-${{ env.CURRENT_GIT_COMMIT }}-${{ env.CURRENT_TOTAL_SIZE }}B-size-changed
           path: |
             build/bootloader/bootloader.bin
             build/partition_table/partition-table.bin
             build/*.bin
           retention-days: 30
+          compression-level: 6
+
+      # Fallback artifact upload for manual dispatch
+      - name: Archive ESP32 binaries (Manual Dispatch)
+        if: github.event_name == 'workflow_dispatch' && env.SIZES_CHANGED != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: esp32-binaries-${{ env.CURRENT_GIT_COMMIT }}-${{ env.CURRENT_TOTAL_SIZE }}B-manual
+          path: |
+            build/bootloader/bootloader.bin
+            build/partition_table/partition-table.bin
+            build/*.bin
+          retention-days: 30
+          compression-level: 6
+
+      # Verification step to ensure upload happened when expected
+      - name: Verify upload completion
+        if: env.SIZES_CHANGED == 'true'
+        run: |
+          echo "✅ Artifact upload completed successfully for size change"
+          echo "📦 Artifact name: esp32-binaries-${{ env.CURRENT_GIT_COMMIT }}-${{ env.CURRENT_TOTAL_SIZE }}B-size-changed"
+          echo "📏 Total size: ${{ env.CURRENT_TOTAL_SIZE }} bytes"
+
+      # Optional: Fail the workflow if upload was expected but didn't happen
+      - name: Validate upload requirement was met
+        run: |
+          if [ "$SIZES_CHANGED" == "true" ]; then
+            echo "Size change detected - upload was required and completed ✅"
+          else
+            echo "No size change detected - upload not required ℹ️"
+          fi
 
       - name: Create build summary
         run: |
