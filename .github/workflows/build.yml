@@ -75,37 +75,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Archive ESP32 binaries (Size Changed)
-        if: env.SIZES_CHANGED == 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: esp32-binaries-${{ env.CURRENT_GIT_COMMIT }}-${{ env.CURRENT_TOTAL_SIZE }}B-size-changed
-          path: |
-            build/bootloader/bootloader.bin
-            build/partition_table/partition-table.bin
-            build/*.bin
-          retention-days: 30
-          compression-level: 6
-
-      - name: Archive ESP32 binaries (Manual Dispatch)
-        if: github.event_name == 'workflow_dispatch' && env.SIZES_CHANGED != 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: esp32-binaries-${{ env.CURRENT_GIT_COMMIT }}-${{ env.CURRENT_TOTAL_SIZE }}B-manual
-          path: |
-            build/bootloader/bootloader.bin
-            build/partition_table/partition-table.bin
-            build/*.bin
-          retention-days: 30
-          compression-level: 6
-
-      - name: Verify upload completion
-        if: env.SIZES_CHANGED == 'true'
-        run: |
-          echo "✅ Artifact upload completed successfully for size change"
-          echo "📦 Artifact name: esp32-binaries-${{ env.CURRENT_GIT_COMMIT }}-${{ env.CURRENT_TOTAL_SIZE }}B-size-changed"
-          echo "📏 Total size: ${{ env.CURRENT_TOTAL_SIZE }} bytes"
-
       - name: Create build summary
         run: |
           chmod +x .github/scripts/create_summary.sh
