@@ -11,8 +11,8 @@ echo "## 🔨 ESP-IDF Build Results" >> $GITHUB_STEP_SUMMARY
 echo "| Component | Size | Change |" >> $GITHUB_STEP_SUMMARY
 echo "|-----------|------|---------|" >> $GITHUB_STEP_SUMMARY
 echo "| Bootloader | ${BOOTLOADER_SIZE} bytes | - |" >> $GITHUB_STEP_SUMMARY
-echo "| Partition Table | ${PARTITION_SIZE} bytes | - |" >> $GITHUB_STEP_SUMMARY
-echo "| Main Binary | ${MAIN_BINARY_SIZE} bytes | - |" >> $GITHUB_STEP_SUMMARY
+echo "| Partition Table | ${PARTITION_TABLE_SIZE} bytes | - |" >> $GITHUB_STEP_SUMMARY
+echo "| Main Binary | ${APP_SIZE} bytes | - |" >> $GITHUB_STEP_SUMMARY
 echo "| **Total** | **${TOTAL_SIZE} bytes** | - |" >> $GITHUB_STEP_SUMMARY
 echo "" >> $GITHUB_STEP_SUMMARY
 echo "📊 **Build Data**: Updated in [\`build-data\`](https://github.com/${GITHUB_REPOSITORY}/tree/build-data) branch" >> $GITHUB_STEP_SUMMARY

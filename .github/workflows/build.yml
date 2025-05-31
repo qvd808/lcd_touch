@@ -53,13 +53,6 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-      # - name: Clean build_data branch
-      #   run: |
-      #     chmod +x .github/scripts/clean_build_data_branch.sh
-      #     .github/scripts/clean_build_data_branch.sh
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - name: ESP-IDF Build
         uses: espressif/esp-idf-ci-action@v1
         with:
@@ -81,46 +74,6 @@ jobs:
           .github/scripts/update_build_data.sh
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Verify build_data branch integrity
-        run: |
-          # Switch to build_data branch and verify only allowed files exist
-          git stash
-          git fetch origin build_data:build_data 2>/dev/null || echo "build_data branch will be created"
-          if git show-ref --verify --quiet refs/heads/build_data; then
-            git checkout build_data
-
-            echo "🔍 Verifying build_data branch contains only authorized files..."
-            ALL_FILES=($(git ls-files))
-            ALLOWED_FILES=("README.md" "build_data.csv")
-
-            unauthorized_found=false
-            for file in "${ALL_FILES[@]}"; do
-              file_allowed=false
-              for allowed in "${ALLOWED_FILES[@]}"; do
-                if [ "$file" == "$allowed" ]; then
-                  file_allowed=true
-                  break
-                fi
-              done
-
-              if [ "$file_allowed" == false ]; then
-                echo "❌ Unauthorized file found: $file"
-                unauthorized_found=true
-              else
-                echo "✅ Authorized file: $file"
-              fi
-            done
-
-            if [ "$unauthorized_found" == true ]; then
-              echo "❌ Build data branch contains unauthorized files!"
-              exit 1
-            else
-              echo "✅ Build data branch is clean - contains only README.md and build_data.csv"
-            fi
-
-            git checkout main
-          fi
 
       - name: Archive ESP32 binaries (Size Changed)
         if: env.SIZES_CHANGED == 'true'
