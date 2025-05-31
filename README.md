@@ -1,3 +1,19 @@
 # Build Data Branch
 
-This branch contains build size tracking data.
+This branch contains only build-related data and metrics for the ESP-IDF project.
+
+## Files:
+- `build_data.csv` - Historical build size data
+- `README.md` - This file
+
+## Statistics:
+- Total build records: 2
+- Last updated: 2025-05-31 06:34:29 UTC
+- Source commit: b02e289
+
+## CSV Format:
+```
+timestamp,commit,total_size,bootloader_size,app_size,partition_table_size
+```
+
+This is an orphan branch with no connection to the main project code.
