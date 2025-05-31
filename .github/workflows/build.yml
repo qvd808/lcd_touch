@@ -5,24 +5,16 @@ on:
     branches: [ main ]
     paths:
       - 'main/**'
-      - 'components/**'
       - 'CMakeLists.txt'
-      - 'sdkconfig'
       - 'sdkconfig.defaults'
-      - 'partitions.csv'
-      - 'Kconfig*'
       - '.github/workflows/**'
       - '.github/scripts/**'
   pull_request:
     branches: [ main ]
     paths:
       - 'main/**'
-      - 'components/**'
       - 'CMakeLists.txt'
-      - 'sdkconfig'
       - 'sdkconfig.defaults'
-      - 'partitions.csv'
-      - 'Kconfig*'
       - '.github/workflows/**'
       - '.github/scripts/**'
 

@@ -22,32 +22,19 @@ if git ls-remote --heads origin build-data | grep -q build-data; then
   echo "build-data branch exists, checking it out"
   git fetch origin build-data
   git checkout build-data
-  
+
   # Clean up any project files that might have accidentally been added
   find . -maxdepth 1 -type f ! -name "*.csv" ! -name "*.md" ! -name ".git*" -delete 2>/dev/null || true
   find . -maxdepth 1 -type d ! -name ".git" ! -name "." -exec rm -rf {} + 2>/dev/null || true
 else
   echo "Creating new orphan build-data branch (data-only)"
   git checkout --orphan build-data
-  
+
   # Remove all files from the orphan branch
   git rm -rf . 2>/dev/null || true
-  
+
   # Clear any staged changes
   git reset --hard
-  
-  # Create README for the data branch
-  cat > README.md << 'EOL'
-# Build Data Branch
-
-This branch contains only build-related data and metrics for the ESP-IDF project.
-
-## Files:
-- build_sizes.csv - Historical build size data
-- README.md - This file
-
-This is an orphan branch with no connection to the main project code.
-EOL
 fi
 
 # Create CSV header if file doesn't exist
@@ -55,6 +42,35 @@ if [ ! -f build_sizes.csv ]; then
   echo "timestamp,bootloader_size,partition_table_size,main_binary_size,total_size,git_commit,branch" > build_sizes.csv
   echo "Created new build_sizes.csv with header"
 fi
+
+# Calculate entry count for README
+ENTRY_COUNT=0
+if [ -f build_sizes.csv ] && [ $(wc -l < build_sizes.csv) -gt 1 ]; then
+  ENTRY_COUNT=$(($(wc -l < build_sizes.csv) - 1))
+fi
+
+# Always ensure README.md exists and is up-to-date with current stats
+cat > README.md << EOL
+# Build Data Branch
+
+This branch contains only build-related data and metrics for the ESP-IDF project.
+
+## Files:
+- \`build_sizes.csv\` - Historical build size data
+- \`README.md\` - This file
+
+## Statistics:
+- Total build records: ${ENTRY_COUNT}
+- Last updated: $(date -u '+%Y-%m-%d %H:%M:%S UTC')
+- Source commit: ${GIT_COMMIT}
+
+## CSV Format:
+\`\`\`
+timestamp,bootloader_size,partition_table_size,main_binary_size,total_size,git_commit,branch
+\`\`\`
+
+This is an orphan branch with no connection to the main project code.
+EOL
 
 # Create new CSV entry
 NEW_ENTRY="\"${TIMESTAMP}\",${BOOTLOADER_SIZE},${PARTITION_SIZE},${MAIN_BINARY_SIZE},${TOTAL_SIZE},${GIT_COMMIT},main"
@@ -84,6 +100,32 @@ fi
 if [ "$SIZES_CHANGED" = true ]; then
   echo "$NEW_ENTRY" >> build_sizes.csv
   echo "SIZES_CHANGED=true" >> $GITHUB_ENV
+  
+  # Recalculate entry count after adding new entry
+  ENTRY_COUNT=$(($(wc -l < build_sizes.csv) - 1))
+  
+  # Update README.md with new stats
+  cat > README.md << EOL
+# Build Data Branch
+
+This branch contains only build-related data and metrics for the ESP-IDF project.
+
+## Files:
+- \`build_sizes.csv\` - Historical build size data
+- \`README.md\` - This file
+
+## Statistics:
+- Total build records: ${ENTRY_COUNT}
+- Last updated: $(date -u '+%Y-%m-%d %H:%M:%S UTC')
+- Source commit: ${GIT_COMMIT}
+
+## CSV Format:
+\`\`\`
+timestamp,bootloader_size,partition_table_size,main_binary_size,total_size,git_commit,branch
+\`\`\`
+
+This is an orphan branch with no connection to the main project code.
+EOL
   
   # Display current CSV contents (last 10 lines)
   echo "=== Updated build_sizes.csv (last 10 entries) ==="
