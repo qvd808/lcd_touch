@@ -15,6 +15,10 @@ ORIGINAL_COMMIT=$(git rev-parse HEAD)
 
 # Check if build-data branch exists
 if git ls-remote --heads origin build-data | grep -q build-data; then
+  # Stash any local changes before switching branches
+  echo "Stashing local changes..."
+  git stash push -m "CI: Auto-stash before build-data checkout" || true
+
   echo "build-data branch exists, checking it out"
   git fetch origin build-data
   git checkout build-data
@@ -67,10 +71,10 @@ if [ -f build_sizes.csv ] && [ $(wc -l < build_sizes.csv) -gt 1 ]; then
   echo "Current commit: $CURRENT_COMMIT"
 
   if [ "$LAST_COMMIT" = "$CURRENT_COMMIT" ]; then
-    echo "Same commit as last entry - skipping CSV update"
-    SIZES_CHANGED=false
+	echo "Same commit as last entry - skipping CSV update"
+	SIZES_CHANGED=false
   else
-    echo "New commit detected - will update CSV"
+	echo "New commit detected - will update CSV"
   fi
 else
   echo "First build or empty CSV - will add entry"
@@ -88,11 +92,11 @@ if [ "$SIZES_CHANGED" = true ]; then
   # Commit changes
   git add .
   if ! git diff --staged --quiet; then
-    git commit -m "Add build data: Total ${TOTAL_SIZE}B (commit ${GIT_COMMIT})"
-    git push origin build-data
-    echo "Changes committed and pushed to build-data branch"
+	git commit -m "Add build data: Total ${TOTAL_SIZE}B (commit ${GIT_COMMIT})"
+	git push origin build-data
+	echo "Changes committed and pushed to build-data branch"
   else
-    echo "No changes to commit"
+	echo "No changes to commit"
   fi
 else
   echo "SIZES_CHANGED=false" >> $GITHUB_ENV
