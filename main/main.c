@@ -43,7 +43,6 @@ void app_main(void) {
 
   // Create a task to for display
   ESP_LOGI(TAG, "Create LVGL task");
-  ESP_LOGI(TAG, "Testing");
   xTaskCreate(example_lvgl_port_task, "LVGL", EXAMPLE_LVGL_TASK_STACK_SIZE,
               NULL, EXAMPLE_LVGL_TASK_PRIORITY, NULL);
 
