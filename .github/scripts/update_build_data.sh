@@ -30,6 +30,7 @@ if git ls-remote --heads origin build_data | grep -q build_data; then
 else
     echo "🆕 Creating new build_data branch..."
     git checkout --orphan build_data
+	git rm -rf .
     echo "# Build Data Branch" > README.md
     echo "" >> README.md
     echo "This branch contains build size tracking data." >> README.md
