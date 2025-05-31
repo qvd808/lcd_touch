@@ -1,6 +1,6 @@
 #!/bin/bash
 # .github/scripts/update_build_data.sh
-# Update build data in the build_data branch
+# Update build data only when build sizes change
 
 set -e
 
@@ -41,7 +41,7 @@ else
     git fetch origin build_data:build_data
 fi
 
-# Create a worktree for the build_data branch to avoid conflicts
+# Create a worktree for the build_data branch
 WORKTREE_DIR=$(mktemp -d)
 echo "🌳 Creating worktree for build_data branch..."
 git worktree add "$WORKTREE_DIR" build_data
@@ -78,54 +78,75 @@ if [ "$unauthorized_found" == true ]; then
     exit 1
 fi
 
-echo "📝 Adding new build data entry..."
-echo "$TIMESTAMP,$COMMIT_HASH,$TOTAL_SIZE,$BOOTLOADER_SIZE,$APP_SIZE,$PARTITION_TABLE_SIZE" >> build_data.csv
+# Check if sizes have changed from last entry
+should_append=true
+if [ -f build_data.csv ] && [ $(wc -l < build_data.csv) -gt 1 ]; then
+    last_entry=$(tail -1 build_data.csv)
+    IFS=',' read -r _ last_commit last_total last_boot last_app last_part <<< "$last_entry"
+    
+    if [ "$TOTAL_SIZE" -eq "$last_total" ] && \
+       [ "$BOOTLOADER_SIZE" -eq "$last_boot" ] && \
+       [ "$APP_SIZE" -eq "$last_app" ] && \
+       [ "$PARTITION_TABLE_SIZE" -eq "$last_part" ]; then
+        echo "🔄 Build sizes unchanged from last entry. Skipping update."
+        should_append=false
+    else
+        echo "📈 Build sizes changed from last entry:"
+        echo "  - Total: $last_total -> $TOTAL_SIZE"
+        echo "  - Bootloader: $last_boot -> $BOOTLOADER_SIZE"
+        echo "  - App: $last_app -> $APP_SIZE"
+        echo "  - Partition Table: $last_part -> $PARTITION_TABLE_SIZE"
+    fi
+fi
 
-echo "🔄 Sorting build data by timestamp..."
-# Sort by the first column (timestamp) while preserving the header
-{
-    head -1 build_data.csv  # Keep header
-    tail -n +2 build_data.csv | sort -t, -k1,1  # Sort by first column (timestamp)
-} > build_data_sorted.csv
-mv build_data_sorted.csv build_data.csv
+# Append new entry only if sizes changed
+if [ "$should_append" = true ]; then
+    echo "📝 Adding new build data entry..."
+    echo "$TIMESTAMP,$COMMIT_HASH,$TOTAL_SIZE,$BOOTLOADER_SIZE,$APP_SIZE,$PARTITION_TABLE_SIZE" >> build_data.csv
 
-echo "📊 Verifying CSV structure..."
-echo "Total entries (including header): $(wc -l < build_data.csv)"
-echo "Last 3 entries:"
-tail -3 build_data.csv
+    echo "🔄 Sorting build data by timestamp..."
+    {
+        head -1 build_data.csv
+        tail -n +2 build_data.csv | sort -t, -k1,1
+    } > build_data_sorted.csv
+    mv build_data_sorted.csv build_data.csv
 
-echo "🔍 Final verification..."
-ALL_FILES=($(git ls-files))
-for file in "${ALL_FILES[@]}"; do
-    file_allowed=false
-    for allowed in "${ALLOWED_FILES[@]}"; do
-        if [ "$file" == "$allowed" ]; then
-            file_allowed=true
-            break
+    echo "📊 Verifying CSV structure..."
+    echo "Total entries (including header): $(wc -l < build_data.csv)"
+    echo "Last 3 entries:"
+    tail -3 build_data.csv
+
+    echo "🔍 Final verification..."
+    for file in "${ALL_FILES[@]}"; do
+        file_allowed=false
+        for allowed in "${ALLOWED_FILES[@]}"; do
+            if [ "$file" == "$allowed" ]; then
+                file_allowed=true
+                break
+            fi
+        done
+        
+        if [ "$file_allowed" == false ]; then
+            echo "❌ Unauthorized file found after update: $file"
+            cd - > /dev/null
+            git worktree remove "$WORKTREE_DIR" --force
+            exit 1
         fi
     done
-    
-    if [ "$file_allowed" == false ]; then
-        echo "❌ Unauthorized file found after update: $file"
-        cd - > /dev/null
-        git worktree remove "$WORKTREE_DIR" --force
-        exit 1
-    else
-        echo "✅ Authorized file: $file"
-    fi
-done
 
-# Commit and push changes
-git add build_data.csv
-git commit -m "Update build data for commit $COMMIT_HASH"
-echo "✅ Committed build data changes"
+    # Commit and push changes
+    git add build_data.csv
+    git commit -m "Update build data for commit $COMMIT_HASH"
+    echo "✅ Committed build data changes"
 
-echo "📤 Pushing updated build data..."
-git push origin build_data
-echo "✅ Successfully updated build data branch"
-echo "📊 Build data entry processed for commit: $COMMIT_HASH"
+    echo "📤 Pushing updated build data..."
+    git push origin build_data
+    echo "✅ Successfully updated build data branch"
+fi
 
-# Return to original directory and cleanup
+echo "📊 Build data processed for commit: $COMMIT_HASH"
+
+# Cleanup
 echo "🏠 Returning to main working directory..."
 cd - > /dev/null
 

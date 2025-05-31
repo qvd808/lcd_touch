@@ -89,11 +89,11 @@ jobs:
           git fetch origin build_data:build_data 2>/dev/null || echo "build_data branch will be created"
           if git show-ref --verify --quiet refs/heads/build_data; then
             git checkout build_data
-            
+
             echo "🔍 Verifying build_data branch contains only authorized files..."
             ALL_FILES=($(git ls-files))
             ALLOWED_FILES=("README.md" "build_data.csv")
-            
+
             unauthorized_found=false
             for file in "${ALL_FILES[@]}"; do
               file_allowed=false
@@ -103,7 +103,7 @@ jobs:
                   break
                 fi
               done
-              
+
               if [ "$file_allowed" == false ]; then
                 echo "❌ Unauthorized file found: $file"
                 unauthorized_found=true
@@ -111,14 +111,14 @@ jobs:
                 echo "✅ Authorized file: $file"
               fi
             done
-            
+
             if [ "$unauthorized_found" == true ]; then
               echo "❌ Build data branch contains unauthorized files!"
               exit 1
             else
               echo "✅ Build data branch is clean - contains only README.md and build_data.csv"
             fi
-            
+
             git checkout main
           fi
 
