@@ -12,6 +12,7 @@ on:
       - 'partitions.csv'
       - 'Kconfig*'
       - '.github/workflows/**'
+      - '.github/scripts/**'
   pull_request:
     branches: [ main ]
     paths:
@@ -23,15 +24,13 @@ on:
       - 'partitions.csv'
       - 'Kconfig*'
       - '.github/workflows/**'
+      - '.github/scripts/**'
 
-# Set permissions for the workflow
 permissions:
-  contents: write  # Allow writing to repository
-  actions: read    # Allow reading workflow info
+  contents: write
+  actions: read
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # Quick check job that always runs
   check:
     runs-on: ubuntu-latest
     outputs:
@@ -43,25 +42,20 @@ jobs:
           echo "should_build=true" >> $GITHUB_OUTPUT
           echo "✅ Build files changed - proceeding with build"
 
-  # This workflow contains the main build job
   build:
     needs: check
     if: needs.check.outputs.should_build == 'true'
-    # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # First, checkout your repository code
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           submodules: 'recursive'
           token: ${{ secrets.GITHUB_TOKEN }}
           persist-credentials: true
-          fetch-depth: 0  # Fetch all history for all branches
+          fetch-depth: 0
 
-      # ESP-IDF Build
       - name: ESP-IDF Build
         uses: espressif/esp-idf-ci-action@v1
         with:
@@ -69,150 +63,19 @@ jobs:
           target: esp32c6
           path: '.'
 
-      # Extract binary sizes and create CSV
-      - name: Extract binary sizes and create CSV
+      - name: Extract binary sizes
+        id: sizes
         run: |
-          echo "=== Extracting binary file sizes ==="
+          chmod +x .github/scripts/extract_sizes.sh
+          .github/scripts/extract_sizes.sh
 
-          # Get current timestamp
-          TIMESTAMP=$(date -u '+%Y-%m-%d %H:%M:%S UTC')
-
-          # Get git commit hash
-          GIT_COMMIT=$(git rev-parse --short HEAD)
-
-          # Extract file sizes (in bytes)
-          BOOTLOADER_SIZE=0
-          PARTITION_SIZE=0
-          MAIN_BINARY_SIZE=0
-
-          if [ -f "build/bootloader/bootloader.bin" ]; then
-            BOOTLOADER_SIZE=$(stat -c%s "build/bootloader/bootloader.bin")
-            echo "Bootloader size: $BOOTLOADER_SIZE bytes"
-          fi
-
-          if [ -f "build/partition_table/partition-table.bin" ]; then
-            PARTITION_SIZE=$(stat -c%s "build/partition_table/partition-table.bin")
-            echo "Partition table size: $PARTITION_SIZE bytes"
-          fi
-
-          # Find the main binary (should be *.bin in build root, excluding bootloader and partition)
-          MAIN_BINARY=$(find build/ -maxdepth 1 -name "*.bin" -not -name "bootloader.bin" -not -name "partition-table.bin" | head -1)
-          if [ -n "$MAIN_BINARY" ] && [ -f "$MAIN_BINARY" ]; then
-            MAIN_BINARY_SIZE=$(stat -c%s "$MAIN_BINARY")
-            echo "Main binary ($MAIN_BINARY) size: $MAIN_BINARY_SIZE bytes"
-          fi
-
-          # Calculate total size
-          TOTAL_SIZE=$((BOOTLOADER_SIZE + PARTITION_SIZE + MAIN_BINARY_SIZE))
-          echo "Total binary size: $TOTAL_SIZE bytes"
-
-          # Export to GitHub environment for use in later steps
-          echo "TOTAL_SIZE=$TOTAL_SIZE" >> $GITHUB_ENV
-          echo "BOOTLOADER_SIZE=$BOOTLOADER_SIZE" >> $GITHUB_ENV
-          echo "PARTITION_SIZE=$PARTITION_SIZE" >> $GITHUB_ENV
-          echo "MAIN_BINARY_SIZE=$MAIN_BINARY_SIZE" >> $GITHUB_ENV
-          echo "TIMESTAMP=$TIMESTAMP" >> $GITHUB_ENV
-          echo "GIT_COMMIT=$GIT_COMMIT" >> $GITHUB_ENV
-
-      # Handle CSV creation and update on build-data branch (data-only orphan branch)
-      - name: Update build sizes CSV
+      - name: Update build data
         run: |
-          # Configure git
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-
-          # Save current commit for later reference
-          ORIGINAL_COMMIT=$(git rev-parse HEAD)
-
-          # Check if build-data branch exists
-          if git ls-remote --heads origin build-data | grep -q build-data; then
-            echo "build-data branch exists, checking it out"
-            git fetch origin build-data
-            git checkout build-data
-            # Clean up any project files that might have accidentally been added
-            find . -maxdepth 1 -type f ! -name "*.csv" ! -name "*.md" ! -name ".git*" -delete
-            find . -maxdepth 1 -type d ! -name ".git" ! -name "." -exec rm -rf {} + 2>/dev/null || true
-          else
-            echo "Creating new orphan build-data branch (data-only)"
-            git checkout --orphan build-data
-            # Remove all files from the orphan branch
-            git rm -rf . 2>/dev/null || true
-            # Clear any staged changes
-            git reset --hard
-            
-            # Create README for the data branch
-            cat > README.md << 'EOF'
-# Build Data Branch
-
-This branch contains only build-related data and metrics for the ESP-IDF project.
-
-## Files:
-- `build_sizes.csv` - Historical build size data
-- `README.md` - This file
-
-This is an orphan branch with no connection to the main project code.
-EOF
-          fi
-
-          # Create CSV header if file doesn't exist
-          if [ ! -f build_sizes.csv ]; then
-            echo "timestamp,bootloader_size,partition_table_size,main_binary_size,total_size,git_commit,branch" > build_sizes.csv
-            echo "Created new build_sizes.csv with header"
-          fi
-
-          # Create new CSV entry
-          NEW_ENTRY="\"${{ env.TIMESTAMP }}\",${{ env.BOOTLOADER_SIZE }},${{ env.PARTITION_SIZE }},${{ env.MAIN_BINARY_SIZE }},${{ env.TOTAL_SIZE }},${{ env.GIT_COMMIT }},main"
-          echo "New entry: $NEW_ENTRY"
-
-          # Check if this entry already exists (compare sizes and commit)
-          SIZES_CHANGED=true
-          if [ -f build_sizes.csv ] && [ $(wc -l < build_sizes.csv) -gt 1 ]; then
-            LAST_ENTRY=$(tail -n 1 build_sizes.csv)
-            LAST_COMMIT=$(echo "$LAST_ENTRY" | cut -d',' -f6)
-            CURRENT_COMMIT="${{ env.GIT_COMMIT }}"
-
-            echo "Last commit: $LAST_COMMIT"
-            echo "Current commit: $CURRENT_COMMIT"
-
-            if [ "$LAST_COMMIT" = "$CURRENT_COMMIT" ]; then
-              echo "Same commit as last entry - skipping CSV update"
-              SIZES_CHANGED=false
-            else
-              echo "New commit detected - will update CSV"
-            fi
-          else
-            echo "First build or empty CSV - will add entry"
-          fi
-
-          # Add entry and commit if sizes changed
-          if [ "$SIZES_CHANGED" = true ]; then
-            echo "$NEW_ENTRY" >> build_sizes.csv
-            echo "SIZES_CHANGED=true" >> $GITHUB_ENV
-            
-            # Display current CSV contents (last 10 lines)
-            echo "=== Updated build_sizes.csv (last 10 entries) ==="
-            tail -n 10 build_sizes.csv
-
-            # Commit changes
-            git add .
-            if ! git diff --staged --quiet; then
-              git commit -m "Add build data: Total ${{ env.TOTAL_SIZE }}B (commit ${{ env.GIT_COMMIT }})"
-              git push origin build-data
-              echo "Changes committed and pushed to build-data branch"
-            else
-              echo "No changes to commit"
-            fi
-          else
-            echo "SIZES_CHANGED=false" >> $GITHUB_ENV
-          fi
-
-          # Switch back to main branch
-          git checkout "$ORIGINAL_COMMIT"
-
+          chmod +x .github/scripts/update_build_data.sh
+          .github/scripts/update_build_data.sh
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # Upload build artifacts only when sizes changed or on manual trigger
       - name: Archive ESP32 binaries
         if: env.SIZES_CHANGED == 'true' || github.event_name == 'workflow_dispatch'
         uses: actions/upload-artifact@v4
@@ -224,20 +87,7 @@ EOF
             build/*.bin
           retention-days: 30
 
-      # Create build summary
-      - name: Add build summary
+      - name: Create build summary
         run: |
-          echo "## 🔨 ESP-IDF Build Results" >> $GITHUB_STEP_SUMMARY
-          echo "| Component | Size | Change |" >> $GITHUB_STEP_SUMMARY
-          echo "|-----------|------|---------|" >> $GITHUB_STEP_SUMMARY
-          echo "| Bootloader | ${{ env.BOOTLOADER_SIZE }} bytes | - |" >> $GITHUB_STEP_SUMMARY
-          echo "| Partition Table | ${{ env.PARTITION_SIZE }} bytes | - |" >> $GITHUB_STEP_SUMMARY
-          echo "| Main Binary | ${{ env.MAIN_BINARY_SIZE }} bytes | - |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Total** | **${{ env.TOTAL_SIZE }} bytes** | - |" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "📊 **Build Data**: Updated in [\`build-data\`](https://github.com/${{ github.repository }}/tree/build-data) branch" >> $GITHUB_STEP_SUMMARY
-          if [ "${{ env.SIZES_CHANGED }}" = "true" ]; then
-            echo "✅ **Status**: Size changes detected - artifacts uploaded" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "ℹ️ **Status**: No size changes - skipped artifact upload" >> $GITHUB_STEP_SUMMARY
-          fi
+          chmod +x .github/scripts/create_summary.sh
+          .github/scripts/create_summary.sh
