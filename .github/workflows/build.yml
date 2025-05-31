@@ -53,12 +53,12 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Clean build_data branch
-        run: |
-          chmod +x .github/scripts/clean_build_data_branch.sh
-          .github/scripts/clean_build_data_branch.sh
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # - name: Clean build_data branch
+      #   run: |
+      #     chmod +x .github/scripts/clean_build_data_branch.sh
+      #     .github/scripts/clean_build_data_branch.sh
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: ESP-IDF Build
         uses: espressif/esp-idf-ci-action@v1
