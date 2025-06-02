@@ -5,3 +5,4 @@ dependencies.lock
 managed_components/
 sdkconfig.old
 build_size.csv
+document.txt

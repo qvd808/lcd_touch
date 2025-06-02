@@ -75,6 +75,9 @@ static void example_lvgl_flush_cb(lv_display_t *disp, const lv_area_t *area,
 
 lv_display_t *display_init(void) {
 
+  /*
+   * Initalize the SPI bus
+   */
   ESP_LOGI(TAG, "Turn off LCD backlight");
   gpio_config_t bk_gpio_config = {.mode = GPIO_MODE_OUTPUT,
                                   .pin_bit_mask = 1ULL
@@ -92,6 +95,9 @@ lv_display_t *display_init(void) {
   };
   ESP_ERROR_CHECK(spi_bus_initialize(LCD_HOST, &buscfg, SPI_DMA_CH_AUTO));
 
+  /*
+   * Initalize the panel for the display
+   */
   ESP_LOGI(TAG, "Install panel IO");
   esp_lcd_panel_io_handle_t io_handle = NULL;
   esp_lcd_panel_io_spi_config_t io_config = {
@@ -137,6 +143,9 @@ lv_display_t *display_init(void) {
   ESP_LOGI(TAG, "Turn on LCD backlight");
   gpio_set_level(EXAMPLE_PIN_NUM_BK_LIGHT, EXAMPLE_LCD_BK_LIGHT_ON_LEVEL);
 
+  /*
+   * Initalize the LVGL library
+   */
   ESP_LOGI(TAG, "Initialize LVGL library");
   lv_init();
 
