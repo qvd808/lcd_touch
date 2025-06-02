@@ -134,7 +134,6 @@ if [ -f build_data_temp.csv ] && [ $(wc -l < build_data_temp.csv) -gt 1 ]; then
 			echo "	- Bootloader: $last_boot -> $BOOTLOADER_SIZE"
 			echo "	- App: $last_app -> $APP_SIZE"
 			echo "	- Partition Table: $last_part -> $PARTITION_TABLE_SIZE"
-			echo "true" > $SIZES_CHANGED
 		fi
 	else
 		echo "⚠️ No entries found that exist in $ORIGINAL_BRANCH. Appending as first valid entry."
