@@ -8,6 +8,7 @@
 #include "freertos/task.h"
 #include "lvgl_display.h"
 #include "mod_wifi.h"
+#include "nvs_flash.h"
 #include "touch_controller.h"
 #include "ui.h"
 #include <stdio.h>
@@ -57,6 +58,15 @@ void app_main(void) {
   lv_screen(display);
   set_time(12, 30, 45); // Set initial time (12:30:45)
   _lock_release(&lvgl_api_lock);
+
+  // Initialize NVS
+  esp_err_t ret = nvs_flash_init();
+  if (ret == ESP_ERR_NVS_NO_FREE_PAGES ||
+      ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+    ESP_ERROR_CHECK(nvs_flash_erase());
+    ret = nvs_flash_init();
+  }
+  ESP_ERROR_CHECK(ret);
 
   mod_wifi_init();
 
