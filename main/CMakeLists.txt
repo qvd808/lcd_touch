@@ -1,10 +1,11 @@
 set(SOURCES
-    "src/display.c"
-    "src/touch_controller.c"
-    "src/ui.c"
+	"src/display.c"
+	"src/touch_controller.c"
+	"src/ui.c"
+	"src/mod_wifi.c"
 )
 
 idf_component_register(
-    SRCS "main.c" ${SOURCES}
-    INCLUDE_DIRS "inc"
+	SRCS "main.c" ${SOURCES}
+	INCLUDE_DIRS "inc"
 )
