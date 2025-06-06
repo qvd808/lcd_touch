@@ -58,27 +58,26 @@ void mod_wifi_init(void) {
   s_wifi_event_group = xEventGroupCreate();
 
   ESP_ERROR_CHECK(esp_netif_init());
-
   ESP_ERROR_CHECK(esp_event_loop_create_default());
   esp_netif_create_default_wifi_sta();
 
   wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
   ESP_ERROR_CHECK(esp_wifi_init(&cfg));
 
-  esp_event_handler_instance_t instance_any_id;
-  esp_event_handler_instance_t instance_got_ip;
-
+  // Register event handlers
+  esp_event_handler_instance_t instance_any_id, instance_got_ip;
   ESP_ERROR_CHECK(esp_event_handler_instance_register(
       WIFI_EVENT, ESP_EVENT_ANY_ID, &event_handler, NULL, &instance_any_id));
   ESP_ERROR_CHECK(esp_event_handler_instance_register(
       IP_EVENT, IP_EVENT_STA_GOT_IP, &event_handler, NULL, &instance_got_ip));
 
+  // Configure Wi-Fi settings
   wifi_config_t wifi_config = {
       .sta =
           {
-              .threshold.authmode = WIFI_AUTH_OPEN,
-              .sae_pwe_h2e = WPA3_SAE_PWE_HUNT_AND_PECK,
-              .sae_h2e_identifier = "",
+              .threshold.authmode = WIFI_AUTH_WPA2_PSK,
+              /* .sae_pwe_h2e = WPA3_SAE_PWE_HUNT_AND_PECK, */
+              /* .sae_h2e_identifier = "", */
           },
   };
   strncpy((char *)wifi_config.sta.ssid, WIFI_SSID,
@@ -90,21 +89,24 @@ void mod_wifi_init(void) {
 
   ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
   ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_config));
-  ESP_ERROR_CHECK(esp_wifi_start());
 
-  ESP_LOGI(TAG, "Wifi init finished");
+  ESP_LOGI(TAG, "Wi-Fi initialized (not started yet)");
+}
 
+void wifi_connection_start() {
+  s_retry_num = 0;                   // Reset retry counter
+  ESP_ERROR_CHECK(esp_wifi_start()); // Start Wi-Fi here
+
+  // Wait for connection/failure
   EventBits_t bits = xEventGroupWaitBits(s_wifi_event_group,
                                          WIFI_CONNECTED_BIT | WIFI_FAIL_BIT,
                                          pdFALSE, pdFALSE, portMAX_DELAY);
 
   if (bits & WIFI_CONNECTED_BIT) {
-    ESP_LOGI(TAG, "Connected to AP SSID:%s password:%s", WIFI_SSID,
-             WIFI_PASSWORD);
+    ESP_LOGI(TAG, "Connected to AP");
   } else if (bits & WIFI_FAIL_BIT) {
-    ESP_LOGI(TAG, "Fail to connected to AP SSID:%s password:%s", WIFI_SSID,
-             WIFI_PASSWORD);
+    ESP_LOGI(TAG, "Failed to connect to AP");
   } else {
-    ESP_LOGE(TAG, "UNEXPECTED EVENT");
+    ESP_LOGE(TAG, "Unexpected event");
   }
 }
