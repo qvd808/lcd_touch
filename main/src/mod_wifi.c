@@ -18,7 +18,7 @@ static const char *WIFI_SSID = "";
 static const char *WIFI_PASSWORD = "";
 #endif
 
-#define ESP_MAXIMUM_RETRY 3
+#define ESP_MAXIMUM_RETRY 15
 
 /* FreeRTOS event group to signal when we are connected*/
 static EventGroupHandle_t s_wifi_event_group;
