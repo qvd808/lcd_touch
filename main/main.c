@@ -50,6 +50,7 @@ static void time_update_task(void *arg) {
 }
 
 void app_main(void) {
+  // Init hardware
   lv_display_t *display = display_init();
   touch_controller_init(display);
 
@@ -69,6 +70,8 @@ void app_main(void) {
   ESP_ERROR_CHECK(ret);
 
   mod_wifi_init();
+
+  wifi_connection_start();
 
   // Create LVGL task
   xTaskCreate(example_lvgl_port_task, "LVGL", LVGL_TASK_STACK_SIZE, NULL,
