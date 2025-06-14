@@ -80,4 +80,6 @@ void app_main(void) {
   // Create time update task
   xTaskCreate(time_update_task, "TIME", 2048, NULL, LVGL_TASK_PRIORITY - 1,
               NULL);
+
+  // Creat something
 }
