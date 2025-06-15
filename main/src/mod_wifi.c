@@ -2,10 +2,13 @@
 #include "esp_event.h"
 #include "esp_event_base.h"
 #include "esp_log.h"
+#include "esp_netif.h"
+#include "esp_netif_sntp.h"
 #include "esp_wifi.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/event_groups.h"
 #include "freertos/projdefs.h"
+#include "portmacro.h"
 #include <string.h>
 
 static const char *TAG = "MOD_WIFI";
@@ -93,7 +96,21 @@ void mod_wifi_init(void) {
   ESP_LOGI(TAG, "Wi-Fi initialized (not started yet)");
 }
 
+void time_sync_notification_cb(struct timeval *tv) {
+  ESP_LOGI(TAG, "Notification of a time synchronization event");
+}
+
 void wifi_connection_start() {
+
+  esp_sntp_config_t config = ESP_NETIF_SNTP_DEFAULT_CONFIG("pool.ntp.org");
+  config.ip_event_to_renew = IP_EVENT_STA_GOT_IP;
+  config.sync_cb = time_sync_notification_cb;
+  esp_netif_sntp_init(&config);
+
+  if (esp_netif_sntp_sync_wait(pdMS_TO_TICKS(10000)) != ESP_OK) {
+    ESP_LOGI(TAG, "Failed to update system time within 10s timeout");
+  }
+
   s_retry_num = 0;                   // Reset retry counter
   ESP_ERROR_CHECK(esp_wifi_start()); // Start Wi-Fi here
 
@@ -104,6 +121,29 @@ void wifi_connection_start() {
 
   if (bits & WIFI_CONNECTED_BIT) {
     ESP_LOGI(TAG, "Connected to AP");
+
+    time_t now = 0;
+    struct tm timeinfo = {0};
+    int retry = 0;
+    const int retry_count = 15;
+    while (esp_netif_sntp_sync_wait(10000 / portTICK_PERIOD_MS) ==
+               ESP_ERR_TIMEOUT &&
+           ++retry < retry_count) {
+      ESP_LOGI(TAG, "Waiting for system time to be set... (%d/%d)", retry,
+               retry_count);
+    }
+
+    time(&now);
+    localtime_r(&now, &timeinfo);
+    char strftime_buf[64];
+
+    // Set timezone to Eastern Standard Time and print local time
+    setenv("TZ", "EST5EDT,M3.2.0/2,M11.1.0", 1);
+    tzset();
+    localtime_r(&now, &timeinfo);
+    strftime(strftime_buf, sizeof(strftime_buf), "%c", &timeinfo);
+    ESP_LOGI(TAG, "The current date/time in New York is: %s", strftime_buf);
+
   } else if (bits & WIFI_FAIL_BIT) {
     ESP_LOGI(TAG, "Failed to connect to AP");
   } else {

@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include <sys/lock.h>
 #include <sys/param.h>
+#include <time.h>
 #include <unistd.h>
 
 static const char *TAG = "MAIN";
@@ -51,14 +52,14 @@ static void time_update_task(void *arg) {
 
 void app_main(void) {
   // Init hardware
-  lv_display_t *display = display_init();
-  touch_controller_init(display);
-
-  // Initialize the screen once
-  _lock_acquire(&lvgl_api_lock);
-  lv_screen(display);
-  set_time(12, 30, 45); // Set initial time (12:30:45)
-  _lock_release(&lvgl_api_lock);
+  /* lv_display_t *display = display_init(); */
+  /* touch_controller_init(display); */
+  /**/
+  /* // Initialize the screen once */
+  /* _lock_acquire(&lvgl_api_lock); */
+  /* lv_screen(display); */
+  /* set_time(12, 30, 45); // Set initial time (12:30:45) */
+  /* _lock_release(&lvgl_api_lock); */
 
   // Initialize NVS
   esp_err_t ret = nvs_flash_init();
@@ -71,15 +72,14 @@ void app_main(void) {
 
   mod_wifi_init();
 
+  /* // Create LVGL task */
+  /* xTaskCreate(example_lvgl_port_task, "LVGL", LVGL_TASK_STACK_SIZE, NULL, */
+  /*             LVGL_TASK_PRIORITY, NULL); */
+  /**/
+  /* // Create time update task */
+  /* xTaskCreate(time_update_task, "TIME", 2048, NULL, LVGL_TASK_PRIORITY - 1,
+   */
+  /*             NULL); */
+
   wifi_connection_start();
-
-  // Create LVGL task
-  xTaskCreate(example_lvgl_port_task, "LVGL", LVGL_TASK_STACK_SIZE, NULL,
-              LVGL_TASK_PRIORITY, NULL);
-
-  // Create time update task
-  xTaskCreate(time_update_task, "TIME", 2048, NULL, LVGL_TASK_PRIORITY - 1,
-              NULL);
-
-  // Creat something
 }
