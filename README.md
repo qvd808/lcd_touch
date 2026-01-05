@@ -8,3 +8,7 @@
 
 ## Software
 - [LVGL](https://docs.lvgl.io/master/index.html)
+
+
+## Documentation
+- [Functional requirements](./docs.md)
