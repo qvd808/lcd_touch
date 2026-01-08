@@ -1,12 +1,12 @@
 set(SOURCES
-	"src/display.c"
-	"src/touch_controller.c"
+	"src/driver/display.c"
+	"src/driver/touch.c"
 	"src/ui.c"
-	"src/mod_wifi.c"
+	# "src/mod_wifi.c" -- Removed wifi for now
 )
 
 idf_component_register(
-	SRCS "main.c" ${SOURCES} "${CMAKE_BINARY_DIR}/generated_env.c"
+	SRCS "src/main.c" ${SOURCES} "${CMAKE_BINARY_DIR}/generated_env.c"
 	INCLUDE_DIRS "inc"
 	REQUIRES esp_event esp_wifi nvs_flash
 )

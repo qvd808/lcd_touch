@@ -1,4 +1,5 @@
 
+#include "driver/display.h"
 #include "config.h"
 #include "display/lv_display.h"
 #include "draw/sw/lv_draw_sw.h"
@@ -9,7 +10,6 @@
 #include "esp_log.h"
 #include "esp_timer.h"
 #include "lv_init.h"
-#include "lvgl_display.h"
 #include <sys/unistd.h>
 
 static const char *TAG = "LVGL_DISPLAY";
