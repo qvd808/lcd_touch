@@ -1,7 +1,13 @@
-#ifndef __LVGL_DISPLAY_H__
-#define __LVGL_DISPLAY_H__
+#ifndef __DISPLAY_H__
+#define __DISPLAY_H__
 
-#include "lvgl.h"
-lv_display_t *display_init(void);
+#include "esp_lcd_types.h"
 
-#endif //__LVGL_DISPLAY_H__
+typedef struct {
+  esp_lcd_panel_handle_t panel_handle;
+  esp_lcd_panel_io_handle_t io_handle;
+} display_handle_t;
+
+display_handle_t display_init(void);
+
+#endif //__DISPLAY_H__

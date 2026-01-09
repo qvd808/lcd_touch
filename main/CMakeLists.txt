@@ -1,6 +1,9 @@
 set(SOURCES
 	"src/driver/display.c"
 	"src/driver/touch.c"
+	"src/hardware/spi.c"
+	"src/hardware/gpio.c"
+	"src/mod_lvgl.c"
 	"src/ui.c"
 	# "src/mod_wifi.c" -- Removed wifi for now
 )

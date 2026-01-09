@@ -95,3 +95,8 @@ main()
   time.h
   settings.c          → Stores user preferences, manages settings changes.
   settings.h
+
+
+
+Maybe add a mod_timer to handle systick?
+Add a screen and screen manager on top of lvgl

@@ -4,12 +4,11 @@
  * SPDX-License-Identifier: CC0-1.0
  */
 #include "config.h"
-#include "driver/display.h"
 #include "driver/touch.h"
 #include "esp_log.h"
 #include "freertos/task.h"
+#include "mod_lvgl.h"
 #include "ui.h"
-#include <stdio.h>
 #include <sys/lock.h>
 #include <sys/param.h>
 #include <unistd.h>
@@ -48,12 +47,13 @@ static void time_update_task(void *arg) {
 }
 
 void app_main(void) {
-  lv_display_t *display = display_init();
-  touch_controller_init(display);
+  display_handle_t display = display_init();
+  lv_display_t *lv_disp = mod_lvgl_init(&display);
+  touch_controller_init(lv_disp);
 
   // Initialize the screen once
   _lock_acquire(&lvgl_api_lock);
-  lv_screen(display);
+  lv_screen(lv_disp);
   set_time(12, 30, 45); // Set initial time (12:30:45)
   _lock_release(&lvgl_api_lock);
 
