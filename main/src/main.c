@@ -1,67 +1,22 @@
 /*
  * SPDX-FileCopyrightText: 2021-2025 Espressif Systems (Shanghai) CO LTD
  *
- * SPDX-License-Identifier: CC0-1.0
+ * * * SPDX-License-Identifier: CC0-1.0
  */
 #include "config.h"
-#include "driver/touch.h"
 #include "esp_log.h"
+#include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "mod_lvgl.h"
-#include "ui.h"
-#include <sys/lock.h>
-#include <sys/param.h>
-#include <unistd.h>
 
 static const char *TAG = "MAIN";
 
-// LVGL library is not thread-safe, this example will call LVGL APIs from
-// different tasks, so use a mutex to protect it
-static _lock_t lvgl_api_lock;
-
-static void example_lvgl_port_task(void *arg) {
-  ESP_LOGI(TAG, "Starting LVGL task");
-  uint32_t time_till_next_ms = 0;
-  while (1) {
-    _lock_acquire(&lvgl_api_lock);
-    time_till_next_ms = lv_timer_handler();
-    _lock_release(&lvgl_api_lock);
-    // in case of triggering a task watch dog time out
-    time_till_next_ms = MAX(time_till_next_ms, LVGL_TASK_MIN_DELAY_MS);
-    // in case of lvgl display not ready yet
-    time_till_next_ms = MIN(time_till_next_ms, LVGL_TASK_MAX_DELAY_MS);
-    usleep(1000 * time_till_next_ms);
-  }
-}
-
-// Task to update time every second
-static void time_update_task(void *arg) {
-  while (1) {
-    vTaskDelay(pdMS_TO_TICKS(1000)); // Wait 1 second
-
-    // Protect LVGL API calls with mutex
-    _lock_acquire(&lvgl_api_lock);
-    increment_time(); // This will update the display
-    _lock_release(&lvgl_api_lock);
-  }
-}
+/* -------------------- app_main -------------------- */
 
 void app_main(void) {
-  display_handle_t display = display_init();
-  lv_display_t *lv_disp = mod_lvgl_init(&display);
-  touch_controller_init(lv_disp);
+  ESP_LOGI("MAIN", "Starting simple LVGL screen");
 
-  // Initialize the screen once
-  _lock_acquire(&lvgl_api_lock);
-  lv_screen(lv_disp);
-  set_time(12, 30, 45); // Set initial time (12:30:45)
-  _lock_release(&lvgl_api_lock);
-
-  // Create LVGL task
-  xTaskCreate(example_lvgl_port_task, "LVGL", LVGL_TASK_STACK_SIZE, NULL,
-              LVGL_TASK_PRIORITY, NULL);
-
-  // Create time update task
-  xTaskCreate(time_update_task, "TIME", 2048, NULL, LVGL_TASK_PRIORITY - 1,
+  /* -------------------- LVGL Main Loop -------------------- */
+  xTaskCreate(lvgl_task, "LVGL", LVGL_TASK_STACK_SIZE, NULL, LVGL_TASK_PRIORITY,
               NULL);
 }
