@@ -1,5 +1,6 @@
 #include "hardware/spi.h"
 #include "config.h"
+#include "driver/spi_common.h"
 #include "esp_log.h"
 
 static const char *TAG = "HAL_SPI";

@@ -1,6 +1,7 @@
 #include "driver/display.h"
 #include "config.h"
 #include "driver/gpio.h"
+#include "esp_lcd_io_spi.h"
 #include "esp_lcd_panel_ops.h"
 #include "esp_log.h"
 #include "hardware/gpio.h"

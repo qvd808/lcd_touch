@@ -1,5 +1,6 @@
 #include "hardware/gpio.h"
 #include "config.h"
+#include "driver/gpio.h"
 #include "esp_log.h"
 
 static const char *TAG = "HAL_GPIO";

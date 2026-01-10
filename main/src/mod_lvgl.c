@@ -50,6 +50,44 @@ static void lvgl_flush_cb(lv_display_t *disp, const lv_area_t *area,
   esp_lcd_panel_draw_bitmap(panel, x1, y1, x2 + 1, y2 + 1, px_map);
 }
 
+static void example_lvgl_touch_cb(lv_indev_t *indev, lv_indev_data_t *data) {
+#if CONFIG_EXAMPLE_LCD_TOUCH_ENABLED
+  uint16_t touchpad_x[1] = {0};
+  uint16_t touchpad_y[1] = {0};
+  uint8_t touchpad_cnt = 0;
+
+  esp_lcd_touch_handle_t touch_pad = lv_indev_get_user_data(indev);
+  esp_lcd_touch_read_data(touch_pad);
+  /* Get coordinates */
+  bool touchpad_pressed = esp_lcd_touch_get_coordinates(
+      touch_pad, touchpad_x, touchpad_y, NULL, &touchpad_cnt, 1);
+
+  if (touchpad_pressed && touchpad_cnt > 0) {
+    data->point.x = touchpad_x[0];
+    data->point.y = touchpad_y[0];
+    data->state = LV_INDEV_STATE_PRESSED;
+  } else {
+    data->state = LV_INDEV_STATE_RELEASED;
+  }
+#else
+  (void)indev, (void)data;
+#endif
+}
+
+static void mod_lv_init_input(lv_display_t *display,
+                              esp_lcd_touch_handle_t tp) {
+  if (tp == NULL) {
+    ESP_LOGI(TAG, "TOUCH CONTROLLER NOT ENAVBLE - SKIP");
+  }
+
+  static lv_indev_t *indev;
+  indev = lv_indev_create(); // Input device driver (Touch)
+  lv_indev_set_type(indev, LV_INDEV_TYPE_POINTER);
+  lv_indev_set_display(indev, display);
+  lv_indev_set_user_data(indev, tp);
+  lv_indev_set_read_cb(indev, example_lvgl_touch_cb);
+}
+
 /* -------------------- Public API -------------------- */
 
 static lv_display_t *mod_lvgl_init(const display_handle_t *display) {
@@ -95,6 +133,7 @@ static lv_display_t *mod_lvgl_init(const display_handle_t *display) {
 }
 
 void gesture_event_cb(lv_event_t *e) {
+#if CONFIG_EXAMPLE_LCD_TOUCH_ENABLED
   lv_dir_t dir = lv_indev_get_gesture_dir(lv_indev_active());
 
   switch (dir) {
@@ -121,6 +160,7 @@ void gesture_event_cb(lv_event_t *e) {
     // Not specific directional gestures, ignore
     break;
   }
+#endif
 }
 
 void lvgl_task(void *arg) {
@@ -131,7 +171,9 @@ void lvgl_task(void *arg) {
   lv_display_t *lv_disp = mod_lvgl_init(&display);
 
   /* Touch init is optional here, but safe */
-  touch_controller_init(lv_disp);
+  esp_lcd_touch_handle_t touch_handle = touch_controller_init();
+
+  mod_lv_init_input(lv_disp, touch_handle);
 
   /* Get active screen */
   lv_obj_t *scr = lv_display_get_screen_active(lv_disp);
