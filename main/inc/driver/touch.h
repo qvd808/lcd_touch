@@ -1,7 +1,7 @@
 #ifndef __TOUCH_CONTROLLER_H__
 #define __TOUCH_CONTROLLER_H__
 
-#include "display/lv_display_private.h"
-void touch_controller_init(lv_display_t *display);
+#include "esp_lcd_touch.h"
+esp_lcd_touch_handle_t touch_controller_init(void);
 
 #endif //__TOUCH_CONTROLLER_H__

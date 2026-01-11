@@ -9,6 +9,7 @@
 #include "freertos/event_groups.h"
 #include "freertos/projdefs.h"
 #include "portmacro.h"
+#include "time.h"
 #include <string.h>
 
 static const char *TAG = "MOD_WIFI";

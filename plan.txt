@@ -1,0 +1,102 @@
+- Reorganized logic on driver
+	-> Display driver
+	-> Touch driver
+- Create a module that's handle interaction between display and touch
+- Create a module that's handle gesture
+- Create UI template 
+	-> Spawn UI templat for home screen
+
+Something like this
+/driver        → wrap display, touch controller around it's library, gluecode for lvgl
+/system        → FreeRTOS tasks, timers, queues, bluetooth
+/ui            → LVGL + screens
+/app           → business logic
+
+
+Bluetooth should be long to something like system
+
+Drivers never know about LVGL objects
+LVGL never knows about hardware
+System never draws UI
+Screens never block or dela
+
+
+## Initialization diagram
+
+main()
+ │
+ ├── driver_init()
+ │     ├── display_init()
+ │     └── touch_init()
+ │
+ ├── system_init()
+ │     ├── create queues
+ │     ├── start timers
+ │     ├── bluetooth_init()
+ │     └── power_init()
+ │
+ ├── ui_init()
+ │     ├── lv_init()
+ │     ├── lvgl_port_init()
+ │     │     ├── register display flush_cb
+ │     │     └── register touch read_cb
+ │     ├── gesture_init()
+ │     └── screen_manager_init()
+ │
+ ├── ui_start()
+ │     └── load home screen
+ │
+ └── vTaskStartScheduler()
+
+
+
+/driver
+  /display
+    display.c         → Initialize display hardware (SPI, ILI9341 panel), provide functions to draw pixels, areas, clear screen.
+    display.h         → Header for display.c; declares public API for driver.
+    display_lvgl.c    → LVGL flush_cb; translates LVGL pixel buffer into display commands.
+    
+  /touch
+    touch.c           → Initialize touch controller (XPT2046), read raw coordinates, handle calibration if needed.
+    touch.h           → Header for touch.c; declares public API for driver.
+    touch_lvgl.c      → LVGL read_cb; provides touch coordinates & pressed state to LVGL.
+
+/system
+  /freertos
+    task_lvgl.c       → LVGL tick/update task; runs lv_timer_handler in a loop.
+    task_app.c        → App logic task(s); handles events, notifications, background processing.
+    queues.c          → Initialize FreeRTOS queues, semaphores, event groups for inter-task communication.
+    
+  /bluetooth
+    bt_service.c      → Wrap ESP32 BLE stack; initialize controller, register callbacks, send/receive data.
+    bt_service.h      → Header for bt_service.c; exposes public API to app layer.
+    
+  /power
+    power.c           → Battery monitoring, backlight control, sleep/wake management.
+    power.h           → Header for power.c
+
+/ui
+  lvgl_port.c         → Initialize LVGL core; register display flush_cb & touch read_cb; optional timer setup.
+  gesture/
+    gesture.c         → Detect gestures (swipe, tap, long press) from LVGL events; translate into semantic actions.
+    gesture.h         → Header for gesture.c; exposes gesture API.
+  screen.h            → Defines screen template structure (on_create, on_destroy, on_gesture, etc.)
+  screen_manager.c    → Handles active screen, screen transitions, screen switching (animations, gestures).
+  screens/
+    home_screen.c     → Implementation of home screen; creates widgets, responds to gestures.
+    home_screen.h     → Header for home_screen.c; exports screen instance to screen manager.
+    app_screen.c      → Implementation of another app screen.
+    settings_screen.c → Implementation of settings screen (widgets, events, gestures).
+
+/app
+  notification.c      → Business logic for notifications; fetch, update, and trigger UI events.
+  notification.h
+  time.c              → Time service; RTC handling, syncing, updating clock on UI.
+  time.h
+  settings.c          → Stores user preferences, manages settings changes.
+  settings.h
+
+
+
+Maybe add a mod_timer to handle systick?
+Add a screen and screen manager on top of lvgl
