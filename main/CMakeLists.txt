@@ -14,7 +14,7 @@ set(SOURCES
 idf_component_register(
 	SRCS "src/main.c" ${SOURCES} "${CMAKE_BINARY_DIR}/generated_env.c"
 	INCLUDE_DIRS "inc"
-	REQUIRES esp_event esp_wifi console nvs_flash bt
+	REQUIRES esp_event console nvs_flash bt
 )
 
 # Check if .env file exists and generate accordingly
