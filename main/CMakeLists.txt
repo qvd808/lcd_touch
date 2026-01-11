@@ -5,13 +5,16 @@ set(SOURCES
 	"src/hardware/gpio.c"
 	"src/mod_lvgl.c"
 	"src/ui.c"
+	"src/scli.c"
+	"src/misc.c"
+	"src/gatt_svr.c"
 	# "src/mod_wifi.c" -- Removed wifi for now
 )
 
 idf_component_register(
 	SRCS "src/main.c" ${SOURCES} "${CMAKE_BINARY_DIR}/generated_env.c"
 	INCLUDE_DIRS "inc"
-	REQUIRES esp_event esp_wifi nvs_flash
+	REQUIRES esp_event esp_wifi console nvs_flash bt
 )
 
 # Check if .env file exists and generate accordingly
