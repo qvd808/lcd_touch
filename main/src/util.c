@@ -4,7 +4,9 @@
  * SPDX-License-Identifier: Unlicense OR CC0-1.0
  */
 
-#include "esp_peripheral.h"
+#include "util.h"
+#include "modlog/modlog.h"
+#include <stdio.h>
 
 /**
  * Utility function to log an array of bytes.

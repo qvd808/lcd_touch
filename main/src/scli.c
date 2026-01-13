@@ -14,7 +14,7 @@
 #include <freertos/task.h>
 #include <freertos/queue.h>
 #include <driver/uart.h>
-#include "esp_peripheral.h"
+#include "scli.h"
 
 #define BLE_RX_TIMEOUT (30000 / portTICK_PERIOD_MS)
 

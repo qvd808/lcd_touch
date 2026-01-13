@@ -6,7 +6,7 @@ set(SOURCES
 	"src/mod_lvgl.c"
 	"src/ui.c"
 	"src/scli.c"
-	"src/misc.c"
+	"src/util.c"
 	"src/gatt_svr.c"
 	# "src/mod_wifi.c" -- Removed wifi for now
 )

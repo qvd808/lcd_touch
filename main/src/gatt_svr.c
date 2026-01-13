@@ -224,9 +224,12 @@ void gatt_svr_register_cb(struct ble_gatt_register_ctxt *ctxt, void *arg) {
 int gatt_svr_init(void) {
   int rc;
 
-  ble_svc_gap_init();
+  ble_svc_gap_init();  // GAP Service (0x1800): Device Name, Appearance
+  /* GATT Service (0x1801): Service Changed, Supported Features (0x2B29)
+   * Note: 0x2B29 tells the client about support for advanced GATT features
+   * like Enhanced ATT (ABR) or Robust Caching. */
   ble_svc_gatt_init();
-  ble_svc_ans_init();
+  ble_svc_ans_init();  // ANS Service (0x1811): Alert Notification
 
   rc = ble_gatts_count_cfg(gatt_svr_svcs);
   if (rc != 0) {

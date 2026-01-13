@@ -21,7 +21,7 @@
 #ifndef H_BLEPRPH_
 #define H_BLEPRPH_
 
-#include "esp_peripheral.h"
+#include "syscfg/syscfg.h"
 #include "modlog/modlog.h"
 #include "nimble/ble.h"
 #include <stdbool.h>

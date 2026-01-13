@@ -6,19 +6,19 @@
 #include "bluetooth.h"
 #include "config.h"
 #include "esp_log.h"
-#include "esp_peripheral.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "host/ble_gap.h"
 #include "host/ble_hs.h"
 #include "host/util/util.h"
+#include "util.h"
+#include "scli.h"
 #include "mod_lvgl.h"
 #include "nimble/nimble_port.h"
 #include "nimble/nimble_port_freertos.h"
 #include "nvs_flash.h"
 #include "services/gap/ble_svc_gap.h"
 
-#define CONFIG_EXAMPLE_IO_TYPE 3
 
 static const char *TAG = "MAIN";
 

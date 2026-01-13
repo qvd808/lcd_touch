@@ -50,4 +50,6 @@
 #define LVGL_TASK_STACK_SIZE (4 * 1024)
 #define LVGL_TASK_PRIORITY 2
 
+#define CONFIG_EXAMPLE_IO_TYPE 3
+
 #endif //__CONFIG_H__
