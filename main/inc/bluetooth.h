@@ -34,7 +34,7 @@ struct ble_gatt_register_ctxt;
 /**
  * Initializes and starts the Bluetooth task.
  */
-void bluetooth_start(void);
+void bluetooth_main_task(void *param);
 
 #ifdef __cplusplus
 }

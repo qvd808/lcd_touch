@@ -37,10 +37,9 @@
 #include <stdio.h>
 #include <string.h>
 
-void ble_store_config_init(void);
-
 static const char *TAG = "BLUETOOTH";
 
+/*###############################PRIVATE VARIABLES####################################*/
 /* A characteristic that can be subscribed to */
 static uint8_t gatt_svr_chr_val;
 static uint16_t gatt_svr_chr_val_handle;
@@ -101,6 +100,9 @@ static const struct ble_gatt_svc_def gatt_svr_svcs[] = {
         0, /* No more services. */
     },
 };
+
+/*###############################PRIVATE FUNCTIONS####################################*/
+void ble_store_config_init(void); // If you don't want bonding, leave empty
 
 static int gatt_svr_write(struct os_mbuf *om, uint16_t min_len,
                           uint16_t max_len, void *dst, uint16_t *len) {
@@ -480,13 +482,13 @@ static void bleprph_on_reset(int reason) {
   MODLOG_DFLT(ERROR, "Resetting state; reason=%d\n", reason);
 }
 
-static void bleprph_host_task(void *param) {
-  ESP_LOGI(TAG, "BLE Host Task Started");
-  nimble_port_run();
-  nimble_port_freertos_deinit();
-}
-
-void bluetooth_start(void) {
+// static void bleprph_host_task(void *param) {
+//   ESP_LOGI(TAG, "BLE Host Task Started");
+//   nimble_port_run();
+//   nimble_port_freertos_deinit();
+// }
+/*###############################PUBLIC FUNCTIONS####################################*/
+void bluetooth_main_task(void *param) {
   int rc;
   esp_err_t ret = nimble_port_init();
   if (ret != ESP_OK) {
@@ -512,5 +514,7 @@ void bluetooth_start(void) {
 
   ble_store_config_init();
 
-  nimble_port_freertos_init(bleprph_host_task);
+  ESP_LOGI(TAG, "BLE Host Task Started");
+  nimble_port_run();
+  nimble_port_freertos_deinit();
 }
