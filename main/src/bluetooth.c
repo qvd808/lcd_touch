@@ -25,13 +25,13 @@
 #include "host/ble_hs.h"
 #include "host/ble_uuid.h"
 #include "host/util/util.h"
+#include "modlog/modlog.h"
+#include "nimble/nimble_port.h"
+#include "nimble/nimble_port_freertos.h"
+#include "scli.h"
 #include "services/ans/ble_svc_ans.h"
 #include "services/gap/ble_svc_gap.h"
 #include "services/gatt/ble_svc_gatt.h"
-#include "nimble/nimble_port.h"
-#include "nimble/nimble_port_freertos.h"
-#include "modlog/modlog.h"
-#include "scli.h"
 #include "util.h"
 #include <assert.h>
 #include <stdio.h>
@@ -39,7 +39,8 @@
 
 static const char *TAG = "BLUETOOTH";
 
-/*###############################PRIVATE VARIABLES####################################*/
+/*###############################PRIVATE
+ * VARIABLES####################################*/
 /* A characteristic that can be subscribed to */
 static uint8_t gatt_svr_chr_val;
 static uint16_t gatt_svr_chr_val_handle;
@@ -101,7 +102,8 @@ static const struct ble_gatt_svc_def gatt_svr_svcs[] = {
     },
 };
 
-/*###############################PRIVATE FUNCTIONS####################################*/
+/*###############################PRIVATE
+ * FUNCTIONS####################################*/
 void ble_store_config_init(void); // If you don't want bonding, leave empty
 
 static int gatt_svr_write(struct os_mbuf *om, uint16_t min_len,
@@ -194,7 +196,8 @@ unknown:
   return BLE_ATT_ERR_UNLIKELY;
 }
 
-static void gatt_svr_register_cb(struct ble_gatt_register_ctxt *ctxt, void *arg) {
+static void gatt_svr_register_cb(struct ble_gatt_register_ctxt *ctxt,
+                                 void *arg) {
   char buf[BLE_UUID_STR_LEN];
 
   switch (ctxt->op) {
@@ -487,7 +490,8 @@ static void bleprph_on_reset(int reason) {
 //   nimble_port_run();
 //   nimble_port_freertos_deinit();
 // }
-/*###############################PUBLIC FUNCTIONS####################################*/
+/*###############################PUBLIC
+ * FUNCTIONS####################################*/
 void bluetooth_main_task(void *param) {
   int rc;
   esp_err_t ret = nimble_port_init();
