@@ -7,7 +7,7 @@ set(SOURCES
 	"src/ui.c"
 	"src/scli.c"
 	"src/util.c"
-	"src/gatt_svr.c"
+	"src/bluetooth.c"
 	# "src/mod_wifi.c" -- Removed wifi for now
 )
 
