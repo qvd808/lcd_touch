@@ -24,11 +24,7 @@ static const char *TAG = "MAIN";
 
 static void bleprph_advertise(void);
 
-#if CONFIG_EXAMPLE_RANDOM_ADDR
-static uint8_t own_addr_type = BLE_OWN_ADDR_RANDOM;
-#else
-static uint8_t own_addr_type;
-#endif
+static uint8_t own_addr_type; // Can be change into random address
 
 static void bleprph_on_sync(void) {
 
@@ -59,7 +55,6 @@ static void bleprph_on_reset(int reason) {
   MODLOG_DFLT(ERROR, "Resetting state; reason=%d\n", reason);
 }
 
-#if NIMBLE_BLE_CONNECT
 /**
  * Logs information about a connection to the console.
  */
@@ -84,7 +79,6 @@ static void bleprph_print_conn_desc(struct ble_gap_conn_desc *desc) {
               desc->sec_state.encrypted, desc->sec_state.authenticated,
               desc->sec_state.bonded);
 }
-#endif
 
 /**
  * The nimble host executes this callback when a GAP event occurs.  The
@@ -102,14 +96,11 @@ static void bleprph_print_conn_desc(struct ble_gap_conn_desc *desc) {
  *                                  particular GAP event being signalled.
  */
 static int bleprph_gap_event(struct ble_gap_event *event, void *arg) {
-#if NIMBLE_BLE_CONNECT
   struct ble_gap_conn_desc desc;
   int rc;
-#endif
 
   switch (event->type) {
 
-#if NIMBLE_BLE_CONNECT
   case BLE_GAP_EVENT_CONNECT:
     /* A new connection was established or a connection attempt failed. */
     MODLOG_DFLT(INFO, "connection %s; status=%d ",
@@ -124,16 +115,9 @@ static int bleprph_gap_event(struct ble_gap_event *event, void *arg) {
 
     if (event->connect.status != 0) {
       /* Connection failed; resume advertising. */
-#if CONFIG_EXAMPLE_EXTENDED_ADV
-      ext_bleprph_advertise();
-#else
       bleprph_advertise();
-#endif
     }
 
-#if MYNEWT_VAL(BLE_POWER_CONTROL)
-    bleprph_power_control(event->connect.conn_handle);
-#endif
     return 0;
 
   case BLE_GAP_EVENT_DISCONNECT:
@@ -276,64 +260,6 @@ static int bleprph_gap_event(struct ble_gap_event *event, void *arg) {
     /* The default behaviour for the event is to reject authorize request */
     event->authorize.out_response = BLE_GAP_AUTHORIZE_REJECT;
     return 0;
-
-#if MYNEWT_VAL(BLE_POWER_CONTROL)
-  case BLE_GAP_EVENT_TRANSMIT_POWER:
-    MODLOG_DFLT(INFO,
-                "Transmit power event : status=%d conn_handle=%d reason=%d "
-                "phy=%d power_level=%x power_level_flag=%d delta=%d",
-                event->transmit_power.status, event->transmit_power.conn_handle,
-                event->transmit_power.reason, event->transmit_power.phy,
-                event->transmit_power.transmit_power_level,
-                event->transmit_power.transmit_power_level_flag,
-                event->transmit_power.delta);
-    return 0;
-
-  case BLE_GAP_EVENT_PATHLOSS_THRESHOLD:
-    MODLOG_DFLT(
-        INFO,
-        "Pathloss threshold event : conn_handle=%d current path loss=%d "
-        "zone_entered =%d",
-        event->pathloss_threshold.conn_handle,
-        event->pathloss_threshold.current_path_loss,
-        event->pathloss_threshold.zone_entered);
-    return 0;
-#endif
-
-#if MYNEWT_VAL(BLE_EATT_CHAN_NUM) > 0
-  case BLE_GAP_EVENT_EATT:
-    MODLOG_DFLT(INFO, "EATT %s : conn_handle=%d cid=%d",
-                event->eatt.status ? "disconnected" : "connected",
-                event->eatt.conn_handle, event->eatt.cid);
-    if (event->eatt.status) {
-      /* Abort if disconnected */
-      return 0;
-    }
-    cids[bearers] = event->eatt.cid;
-    bearers += 1;
-    if (bearers != MYNEWT_VAL(BLE_EATT_CHAN_NUM)) {
-      /* Wait until all EATT bearers are connected before proceeding */
-      return 0;
-    }
-    /* Set the default bearer to use for further procedures */
-    rc = ble_att_set_default_bearer_using_cid(event->eatt.conn_handle, cids[0]);
-    if (rc != 0) {
-      MODLOG_DFLT(INFO, "Cannot set default EATT bearer, rc = %d\n", rc);
-      return rc;
-    }
-
-    return 0;
-#endif
-
-#if MYNEWT_VAL(BLE_CONN_SUBRATING)
-  case BLE_GAP_EVENT_SUBRATE_CHANGE:
-    MODLOG_DFLT(INFO,
-                "Subrate change event : conn_handle=%d status=%d factor=%d",
-                event->subrate_change.conn_handle, event->subrate_change.status,
-                event->subrate_change.subrate_factor);
-    return 0;
-#endif
-#endif
   }
   return 0;
 }
@@ -446,16 +372,12 @@ void app_main(void) {
   /* ble_hs_cfg.sm_our_key_dist |= BLE_SM_PAIR_KEY_DIST_ID; */
   /* ble_hs_cfg.sm_their_key_dist |= BLE_SM_PAIR_KEY_DIST_ID; */
 
-#if MYNEWT_VAL(BLE_GATTS)
   rc = gatt_svr_init();
   assert(rc == 0);
-#endif
 
-#if CONFIG_BT_NIMBLE_GAP_SERVICE
   /* Set the default device name. */
   rc = ble_svc_gap_device_name_set("nimble-test");
   assert(rc == 0);
-#endif
 
   /* XXX Need to have template for store */
   ble_store_config_init();
@@ -467,13 +389,6 @@ void app_main(void) {
   if (rc != ESP_OK) {
     ESP_LOGE(TAG, "scli_init() failed");
   }
-
-#if MYNEWT_VAL(BLE_EATT_CHAN_NUM) > 0
-  bearers = 0;
-  for (int i = 0; i < MYNEWT_VAL(BLE_EATT_CHAN_NUM); i++) {
-    cids[i] = 0;
-  }
-#endif
 
   /* -------------------- LVGL Main Loop -------------------- */
   xTaskCreate(lvgl_task, "LVGL", LVGL_TASK_STACK_SIZE, NULL, LVGL_TASK_PRIORITY,

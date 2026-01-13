@@ -62,26 +62,14 @@ static const struct ble_gatt_svc_def gatt_svr_svcs[] = {
                        0x00 and 0x01 to the CCCD ***/
                     .uuid = &gatt_svr_chr_uuid.u,
                     .access_cb = gatt_svc_access,
-#if CONFIG_EXAMPLE_ENCRYPTION
-                    .flags = BLE_GATT_CHR_F_READ | BLE_GATT_CHR_F_WRITE |
-                             BLE_GATT_CHR_F_READ_ENC |
-                             BLE_GATT_CHR_F_WRITE_ENC | BLE_GATT_CHR_F_NOTIFY |
-                             BLE_GATT_CHR_F_INDICATE,
-#else
                     .flags = BLE_GATT_CHR_F_READ | BLE_GATT_CHR_F_WRITE |
                              BLE_GATT_CHR_F_NOTIFY | BLE_GATT_CHR_F_INDICATE,
-#endif
                     .val_handle = &gatt_svr_chr_val_handle,
                     .descriptors =
                         (struct ble_gatt_dsc_def[]){
                             {
                                 .uuid = &gatt_svr_dsc_uuid.u,
-#if CONFIG_EXAMPLE_ENCRYPTION
-                                .att_flags =
-                                    BLE_ATT_F_READ | BLE_ATT_F_READ_ENC,
-#else
                                 .att_flags = BLE_ATT_F_READ,
-#endif
                                 .access_cb = gatt_svc_access,
                             },
                             {
@@ -146,6 +134,8 @@ static int gatt_svc_access(uint16_t conn_handle, uint16_t attr_handle,
     if (attr_handle == gatt_svr_chr_val_handle) {
       rc =
           os_mbuf_append(ctxt->om, &gatt_svr_chr_val, sizeof(gatt_svr_chr_val));
+
+      ESP_LOGI("NimBLE", "Value read: 0x%02X", gatt_svr_chr_val);
       return rc == 0 ? 0 : BLE_ATT_ERR_INSUFFICIENT_RES;
     }
     goto unknown;
@@ -162,6 +152,7 @@ static int gatt_svc_access(uint16_t conn_handle, uint16_t attr_handle,
     if (attr_handle == gatt_svr_chr_val_handle) {
       rc = gatt_svr_write(ctxt->om, sizeof(gatt_svr_chr_val),
                           sizeof(gatt_svr_chr_val), &gatt_svr_chr_val, NULL);
+      ESP_LOGI("NimBLE", "Value written: 0x%02X", gatt_svr_chr_val);
       ble_gatts_chr_updated(attr_handle);
       MODLOG_DFLT(INFO, "Notification/Indication scheduled for "
                         "all subscribed peers.\n");
