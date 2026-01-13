@@ -281,11 +281,11 @@ static int bleprph_gap_event(struct ble_gap_event *event, void *arg) {
       assert(rc == 0);
       bleprph_print_conn_desc(&desc);
 
-      /* Force Security Initiation to trigger Pairing on Phone */
-      rc = ble_gap_security_initiate(event->connect.conn_handle);
-      if (rc != 0) {
-          MODLOG_DFLT(INFO, "Security initiate failed; rc=%d\n", rc);
-      }
+      // /* Force Security Initiation to trigger Pairing on Phone */
+      // rc = ble_gap_security_initiate(event->connect.conn_handle);
+      // if (rc != 0) {
+      //     MODLOG_DFLT(INFO, "Security initiate failed; rc=%d\n", rc);
+      // }
     }
     MODLOG_DFLT(INFO, "\n");
 
