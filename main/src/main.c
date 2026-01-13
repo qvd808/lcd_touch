@@ -110,6 +110,12 @@ static int bleprph_gap_event(struct ble_gap_event *event, void *arg) {
       rc = ble_gap_conn_find(event->connect.conn_handle, &desc);
       assert(rc == 0);
       bleprph_print_conn_desc(&desc);
+
+      /* Force Security Initiation to trigger Pairing on Phone */
+      rc = ble_gap_security_initiate(event->connect.conn_handle);
+      if (rc != 0) {
+          MODLOG_DFLT(INFO, "Security initiate failed; rc=%d\n", rc);
+      }
     }
     MODLOG_DFLT(INFO, "\n");
 
@@ -366,7 +372,9 @@ void app_main(void) {
   ble_hs_cfg.store_status_cb = ble_store_util_status_rr;
 
   ble_hs_cfg.sm_io_cap = CONFIG_EXAMPLE_IO_TYPE;
-  ble_hs_cfg.sm_sc = 0;
+  ble_hs_cfg.sm_sc = 1;     // Enable Secure Connections
+  ble_hs_cfg.sm_mitm = 1;   // Force Man-In-The-Middle protection (triggers Passkey)
+  ble_hs_cfg.sm_bonding = 1; // Enable Bonding
 
   /* Stores the IRK */
   /* ble_hs_cfg.sm_our_key_dist |= BLE_SM_PAIR_KEY_DIST_ID; */
