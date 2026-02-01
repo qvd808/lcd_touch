@@ -13,6 +13,7 @@
 #include "widgets/label/lv_label.h"
 #include <stdbool.h>
 #include <sys/unistd.h>
+#include <sys/param.h>
 
 // ################## PRIVATE VARIABLE ###############################
 static const char *TAG = "MOD_LVGL";
