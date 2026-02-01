@@ -50,4 +50,17 @@
 #define LVGL_TASK_STACK_SIZE (4 * 1024)
 #define LVGL_TASK_PRIORITY 2
 
+// Bluetooth GATT Service and Characteristic UUIDs
+#define GATT_SVR_SVC_ALERT_UUID 0x1811
+#define GATT_SVR_CHR_SUP_NEW_ALERT_CAT_UUID 0x2A47
+#define GATT_SVR_CHR_NEW_ALERT 0x2A46
+#define GATT_SVR_CHR_SUP_UNR_ALERT_CAT_UUID 0x2A48
+#define GATT_SVR_CHR_UNR_ALERT_STAT_UUID 0x2A45
+#define GATT_SVR_CHR_ALERT_NOT_CTRL_PT 0x2A44
+
+// Maximum number of characteristics with the notify flag
+#define MAX_NOTIFY 5
+
+#define CONFIG_EXAMPLE_IO_TYPE 3
+
 #endif //__CONFIG_H__

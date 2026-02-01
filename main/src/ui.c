@@ -22,9 +22,9 @@ void lv_screen(lv_disp_t *disp) {
 
 void update_time_display() {
   if (time_label != NULL) {
-	static char time_str[15]; // "HH:MM:SS" + null terminator
-	sprintf(time_str, "%02d:%02d:%02d", hours, minutes, seconds);
-	lv_label_set_text(time_label, time_str);
+    static char time_str[15]; // "HH:MM:SS" + null terminator
+    sprintf(time_str, "%02d:%02d:%02d", hours, minutes, seconds);
+    lv_label_set_text(time_label, time_str);
   }
 }
 
@@ -33,17 +33,17 @@ void increment_time() {
 
   // Handle rollover
   if (seconds >= 60) {
-	seconds = 0;
-	minutes++;
-	
-	if (minutes >= 60) {
-	  minutes = 0;
-	  hours++;
+    seconds = 0;
+    minutes++;
 
-	  if (hours >= 24) {
-		hours = 0;
-	  }
-	}
+    if (minutes >= 60) {
+      minutes = 0;
+      hours++;
+
+      if (hours >= 24) {
+        hours = 0;
+      }
+    }
   }
 
   // Update the display
