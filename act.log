@@ -1,0 +1,218 @@
+time="2026-01-31T18:50:25-08:00" level=info msg="Using docker host 'unix:///var/run/docker.sock', and daemon socket 'unix:///var/run/docker.sock'"
+time="2026-01-31T18:50:25-08:00" level=warning msg="unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'"
+[Build and Artifact the ESP-IDF Project/check] ⭐ Run Set up job
+[Build and Artifact the ESP-IDF Project/check] 🚀  Start image=catthehacker/ubuntu:act-latest
+[Build and Artifact the ESP-IDF Project/check]   🐳  docker pull image=catthehacker/ubuntu:act-latest platform= username= forcePull=true
+[Build and Artifact the ESP-IDF Project/check]   🐳  docker create image=catthehacker/ubuntu:act-latest platform= entrypoint=["tail" "-f" "/dev/null"] cmd=[] network="host"
+[Build and Artifact the ESP-IDF Project/check]   🐳  docker run image=catthehacker/ubuntu:act-latest platform= entrypoint=["tail" "-f" "/dev/null"] cmd=[] network="host"
+[Build and Artifact the ESP-IDF Project/check]   🐳  docker exec cmd=[node --no-warnings -e console.log(process.execPath)] user= workdir=
+[Build and Artifact the ESP-IDF Project/check]   ✅  Success - Set up job
+[Build and Artifact the ESP-IDF Project/check] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/check] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/check] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/check] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/check] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/check] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/check] ⭐ Run Main Check if build is needed
+[Build and Artifact the ESP-IDF Project/check] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/check] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/check] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/check] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/check]   🐳  docker exec cmd=[bash -e /var/run/act/workflow/changes] user= workdir=
+[Build and Artifact the ESP-IDF Project/check]   | ✅ Build files changed - proceeding with build
+[Build and Artifact the ESP-IDF Project/check]   ✅  Success - Main Check if build is needed [129.956869ms]
+[Build and Artifact the ESP-IDF Project/check]   ⚙  ::set-output:: should_build=true
+[Build and Artifact the ESP-IDF Project/check] ⭐ Run Complete job
+[Build and Artifact the ESP-IDF Project/check] Cleaning up container for job check
+[Build and Artifact the ESP-IDF Project/check] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/check]   ✅  Success - Complete job
+[Build and Artifact the ESP-IDF Project/check] 🏁  Job succeeded
+time="2026-01-31T18:50:30-08:00" level=warning msg="unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'"
+[Build and Artifact the ESP-IDF Project/build] ⭐ Run Set up job
+[Build and Artifact the ESP-IDF Project/build] 🚀  Start image=catthehacker/ubuntu:act-latest
+[Build and Artifact the ESP-IDF Project/build]   🐳  docker pull image=catthehacker/ubuntu:act-latest platform= username= forcePull=true
+[Build and Artifact the ESP-IDF Project/build]   🐳  docker create image=catthehacker/ubuntu:act-latest platform= entrypoint=["tail" "-f" "/dev/null"] cmd=[] network="host"
+[Build and Artifact the ESP-IDF Project/build]   🐳  docker run image=catthehacker/ubuntu:act-latest platform= entrypoint=["tail" "-f" "/dev/null"] cmd=[] network="host"
+[Build and Artifact the ESP-IDF Project/build]   🐳  docker exec cmd=[node --no-warnings -e console.log(process.execPath)] user= workdir=
+[Build and Artifact the ESP-IDF Project/build]   ✅  Success - Set up job
+[Build and Artifact the ESP-IDF Project/build] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/build] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/build] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/build]   ☁  git clone 'https://github.com/espressif/esp-idf-ci-action' # ref=v1
+[Build and Artifact the ESP-IDF Project/build] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/build] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/build] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/build] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/build] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/build] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/build] ⭐ Run Pre ESP-IDF Build
+[Build and Artifact the ESP-IDF Project/build] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/build] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/build] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/build] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/build] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/build]   ✅  Success - Pre ESP-IDF Build [40.133611ms]
+[Build and Artifact the ESP-IDF Project/build] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/build] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/build] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/build] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/build] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/build] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/build] ⭐ Run Main Checkout repository
+[Build and Artifact the ESP-IDF Project/build] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/build] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/build]   🐳  docker cp src=/root/Programming/Learning/ESP32/lcd_touch/. dst=/root/Programming/Learning/ESP32/lcd_touch
+[Build and Artifact the ESP-IDF Project/build]   ✅  Success - Main Checkout repository [791.894558ms]
+[Build and Artifact the ESP-IDF Project/build] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/build] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/build] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/build] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/build] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/build] ⭐ Run Main Configure Git
+[Build and Artifact the ESP-IDF Project/build] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/build] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/build] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/build] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/build]   🐳  docker exec cmd=[bash -e /var/run/act/workflow/1] user= workdir=
+[Build and Artifact the ESP-IDF Project/build]   ✅  Success - Main Configure Git [121.72919ms]
+[Build and Artifact the ESP-IDF Project/build] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/build] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/build] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/build] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/build] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/build] ⭐ Run Main ESP-IDF Build
+[Build and Artifact the ESP-IDF Project/build] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/build] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/build] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/build]   🐳  docker cp src=/root/.cache/act/espressif-esp-idf-ci-action@v1/ dst=/var/run/act/actions/espressif-esp-idf-ci-action@v1/
+[Build and Artifact the ESP-IDF Project/build] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/build] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/build] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/build] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/build] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/build] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/build] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/build] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/build] ⭐ Run Main export IDF_TARGET=$(echo "esp32c6" | tr '[:upper:]' '[:lower:]' | tr -d '_-')
+docker run -t \
+-e IDF_TARGET="${IDF_TARGET}" \
+-v "${GITHUB_WORKSPACE}:/app/qvd808/lcd_touch" \
+-w "/app/qvd808/lcd_touch/." \
+ \
+espressif/idf:v5.5.1 \
+/bin/bash -c 'git config --global --add safe.directory "*" && idf.py build'
+[Build and Artifact the ESP-IDF Project/build] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/build] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/build] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/build] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/build]   🐳  docker exec cmd=[bash --noprofile --norc -e -o pipefail /var/run/act/workflow/2-composite-0.sh] user= workdir=
+[Build and Artifact the ESP-IDF Project/build]   | Checking "python3" ...
+[Build and Artifact the ESP-IDF Project/build]   | Python 3.12.3
+[Build and Artifact the ESP-IDF Project/build]   | "python3" has been detected
+[Build and Artifact the ESP-IDF Project/build]   | [91mActivating ESP-IDF [0m[1;91m5.5[0m
+[Build and Artifact the ESP-IDF Project/build]   | Setting IDF_PATH to [32m'/opt/esp/idf'[0m.
+[Build and Artifact the ESP-IDF Project/build]   | [91m*[0m Checking python version [33m...[0m [1;32m3.12[0m[32m.[0m[1;32m3[0m
+[Build and Artifact the ESP-IDF Project/build]   | [91m*[0m Checking python dependencies [33m...[0m [32mOK[0m
+[Build and Artifact the ESP-IDF Project/build]   | [91m*[0m Deactivating the current ESP-IDF environment [1m([0mif any[1m)[0m [33m...[0m [32mOK[0m
+[Build and Artifact the ESP-IDF Project/build]   | [91m*[0m Establishing a new ESP-IDF environment [33m...[0m [32mOK[0m
+[Build and Artifact the ESP-IDF Project/build]   | [91m*[0m Identifying shell [33m...[0m [32mbash[0m
+[Build and Artifact the ESP-IDF Project/build]   | [91m*[0m Detecting outdated tools in system [33m...[0m [32mOK - no outdated tools found[0m
+[Build and Artifact the ESP-IDF Project/build]   | [91m*[0m Shell completion [33m...[0m [32mAutocompletion code generated[0m
+[Build and Artifact the ESP-IDF Project/build]   | 
+[Build and Artifact the ESP-IDF Project/build]   | Done! You can now compile ESP-IDF projects.
+[Build and Artifact the ESP-IDF Project/build]   | Go to the project directory and run:
+[Build and Artifact the ESP-IDF Project/build]   | 
+[Build and Artifact the ESP-IDF Project/build]   |   idf.py build
+[Build and Artifact the ESP-IDF Project/build]   | Executing action: all (aliases: build)
+[Build and Artifact the ESP-IDF Project/build]   | Running cmake in directory /app/qvd808/lcd_touch/build
+[Build and Artifact the ESP-IDF Project/build]   | Executing "cmake -G Ninja -DPYTHON_DEPS_CHECKED=1 -DPYTHON=/opt/esp/python_env/idf5.5_py3.12_env/bin/python -DESP_PLATFORM=1 -DCCACHE_ENABLE=1 /app/qvd808/lcd_touch"...
+[Build and Artifact the ESP-IDF Project/build]   | -- Found Git: /usr/bin/git (found version "2.43.0")
+[Build and Artifact the ESP-IDF Project/build]   | -- Minimal build - ON
+[Build and Artifact the ESP-IDF Project/build]   | -- ccache will be used for faster recompilation
+[Build and Artifact the ESP-IDF Project/build]   | -- The C compiler identification is GNU 14.2.0
+[Build and Artifact the ESP-IDF Project/build]   | -- The CXX compiler identification is GNU 14.2.0
+[Build and Artifact the ESP-IDF Project/build]   | -- The ASM compiler identification is GNU
+[Build and Artifact the ESP-IDF Project/build]   | -- Found assembler: /opt/esp/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/bin/riscv32-esp-elf-gcc
+[Build and Artifact the ESP-IDF Project/build]   | -- Detecting C compiler ABI info
+[Build and Artifact the ESP-IDF Project/build]   | -- Detecting C compiler ABI info - done
+[Build and Artifact the ESP-IDF Project/build]   | -- Check for working C compiler: /opt/esp/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/bin/riscv32-esp-elf-gcc - skipped
+[Build and Artifact the ESP-IDF Project/build]   | -- Detecting C compile features
+[Build and Artifact the ESP-IDF Project/build]   | -- Detecting C compile features - done
+[Build and Artifact the ESP-IDF Project/build]   | -- Detecting CXX compiler ABI info
+[Build and Artifact the ESP-IDF Project/build]   | -- Detecting CXX compiler ABI info - done
+[Build and Artifact the ESP-IDF Project/build]   | -- Check for working CXX compiler: /opt/esp/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/bin/riscv32-esp-elf-g++ - skipped
+[Build and Artifact the ESP-IDF Project/build]   | -- Detecting CXX compile features
+[Build and Artifact the ESP-IDF Project/build]   | -- Detecting CXX compile features - done
+[Build and Artifact the ESP-IDF Project/build]   | -- Building ESP-IDF components for target esp32c6
+[Build and Artifact the ESP-IDF Project/build]   | NOTICE: Processing 6 dependencies:
+[Build and Artifact the ESP-IDF Project/build]   | NOTICE: [1/6] atanisoft/esp_lcd_touch_xpt2046 (1.0.5)
+[Build and Artifact the ESP-IDF Project/build]   | NOTICE: [2/6] espressif/cmake_utilities (0.5.3)
+[Build and Artifact the ESP-IDF Project/build]   | NOTICE: [3/6] espressif/esp_lcd_ili9341 (1.2.0)
+[Build and Artifact the ESP-IDF Project/build]   | NOTICE: [4/6] espressif/esp_lcd_touch (1.2.1)
+[Build and Artifact the ESP-IDF Project/build]   | NOTICE: [5/6] lvgl/lvgl (9.2.0)
+[Build and Artifact the ESP-IDF Project/build]   | NOTICE: [6/6] idf (5.5.1)
+[Build and Artifact the ESP-IDF Project/build]   | -- Project sdkconfig file /app/qvd808/lcd_touch/sdkconfig
+[Build and Artifact the ESP-IDF Project/build]   | Loading defaults file /app/qvd808/lcd_touch/sdkconfig.defaults...
+[Build and Artifact the ESP-IDF Project/build]   | warning: unknown kconfig symbol 'BT_MODE_BLE' assigned to 'y' in /app/qvd808/lcd_touch/sdkconfig.defaults
+[Build and Artifact the ESP-IDF Project/build]   | -- Adding linker script /opt/esp/idf/components/riscv/ld/rom.api.ld
+[Build and Artifact the ESP-IDF Project/build]   | -- Found Python3: /opt/esp/python_env/idf5.5_py3.12_env/bin/python (found version "3.12.3") found components: Interpreter
+[Build and Artifact the ESP-IDF Project/build]   | -- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+[Build and Artifact the ESP-IDF Project/build]   | -- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
+[Build and Artifact the ESP-IDF Project/build]   | -- Found Threads: TRUE
+[Build and Artifact the ESP-IDF Project/build]   | -- Performing Test C_COMPILER_SUPPORTS_WFORMAT_SIGNEDNESS
+[Build and Artifact the ESP-IDF Project/build]   | -- Performing Test C_COMPILER_SUPPORTS_WFORMAT_SIGNEDNESS - Success
+[Build and Artifact the ESP-IDF Project/build]   | -- USING O3
+[Build and Artifact the ESP-IDF Project/build]   | CMake Error at /opt/esp/idf/components/mbedtls/mbedtls/CMakeLists.txt:169 (message):
+[Build and Artifact the ESP-IDF Project/build]   |   Could not create symbolic link for:
+[Build and Artifact the ESP-IDF Project/build]   |   /opt/esp/idf/components/mbedtls/mbedtls/library/error.c --> ln: failed to
+[Build and Artifact the ESP-IDF Project/build]   |   create symbolic link
+[Build and Artifact the ESP-IDF Project/build]   |   '/app/qvd808/lcd_touch/build/esp-idf/mbedtls/mbedtls/library/error.c': File
+[Build and Artifact the ESP-IDF Project/build]   |   exists
+[Build and Artifact the ESP-IDF Project/build]   | 
+[Build and Artifact the ESP-IDF Project/build]   | Call Stack (most recent call first):
+[Build and Artifact the ESP-IDF Project/build]   |   /opt/esp/idf/components/mbedtls/mbedtls/library/CMakeLists.txt:193 (link_to_source)
+[Build and Artifact the ESP-IDF Project/build]   | 
+[Build and Artifact the ESP-IDF Project/build]   | 
+[Build and Artifact the ESP-IDF Project/build]   | -- Configuring incomplete, errors occurred!
+[Build and Artifact the ESP-IDF Project/build]   | cmake failed with exit code 1, output of the command is in the /app/qvd808/lcd_touch/build/log/idf_py_stderr_output_105 and /app/qvd808/lcd_touch/build/log/idf_py_stdout_output_105
+[Build and Artifact the ESP-IDF Project/build]   ❌  Failure - Main export IDF_TARGET=$(echo "esp32c6" | tr '[:upper:]' '[:lower:]' | tr -d '_-')
+docker run -t \
+-e IDF_TARGET="${IDF_TARGET}" \
+-v "${GITHUB_WORKSPACE}:/app/qvd808/lcd_touch" \
+-w "/app/qvd808/lcd_touch/." \
+ \
+espressif/idf:v5.5.1 \
+/bin/bash -c 'git config --global --add safe.directory "*" && idf.py build'
+ [11.619209015s]
+[Build and Artifact the ESP-IDF Project/build] exitcode '2': failure
+[Build and Artifact the ESP-IDF Project/build] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/build]   ❌  Failure - Main ESP-IDF Build [11.76329199s]
+[Build and Artifact the ESP-IDF Project/build] exitcode '2': failure
+[Build and Artifact the ESP-IDF Project/build] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/build] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/build] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/build] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/build] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/build] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/build] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/build] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/build] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/build] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/build] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/build] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/build] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/build] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/build] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/build] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/build] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/build] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/build] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/build] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/build] ⭐ Run Post ESP-IDF Build
+[Build and Artifact the ESP-IDF Project/build]   🐳  docker cp src=/root/.cache/act/espressif-esp-idf-ci-action@v1/ dst=/var/run/act/actions/espressif-esp-idf-ci-action@v1/
+[Build and Artifact the ESP-IDF Project/build]   ✅  Success - Post ESP-IDF Build [12.84539ms]
+[Build and Artifact the ESP-IDF Project/build] ⭐ Run Complete job
+[Build and Artifact the ESP-IDF Project/build] unable to get git ref: failed to identify reference (tag/branch) for the checked-out revision 'aa19d7ff20776a89f079a9a0097c3b5ec62a04bf'
+[Build and Artifact the ESP-IDF Project/build]   ✅  Success - Complete job
+[Build and Artifact the ESP-IDF Project/build] 🏁  Job failed
+Error: Job 'build' failed
