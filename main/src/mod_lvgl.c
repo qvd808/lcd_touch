@@ -198,6 +198,10 @@ void gesture_event_cb(lv_event_t *e) {
 }
 
 static void home_screen(lv_obj_t *scr) {
+  /* Disable scrolling and scrollbar on main screen */
+  lv_obj_remove_flag(scr, LV_OBJ_FLAG_SCROLLABLE);
+  lv_obj_set_scrollbar_mode(scr, LV_SCROLLBAR_MODE_OFF);
+
   /* Set dark background */
   lv_obj_set_style_bg_color(scr, lv_color_hex(0x000000), 0);
   lv_obj_set_style_bg_opa(scr, LV_OPA_COVER, 0);
@@ -217,6 +221,8 @@ static void home_screen(lv_obj_t *scr) {
 
   /* Status icons container */
   lv_obj_t *status_container = lv_obj_create(scr);
+  lv_obj_remove_flag(status_container, LV_OBJ_FLAG_SCROLLABLE);
+  lv_obj_set_scrollbar_mode(status_container, LV_SCROLLBAR_MODE_OFF);
   lv_obj_set_size(status_container, 200, 40);
   lv_obj_align(status_container, LV_ALIGN_TOP_MID, 0, 10);
   lv_obj_set_style_bg_opa(status_container, LV_OPA_TRANSP, 0);
@@ -243,6 +249,8 @@ static void home_screen(lv_obj_t *scr) {
 
   /* Quick stats container */
   lv_obj_t *stats_container = lv_obj_create(scr);
+  lv_obj_remove_flag(stats_container, LV_OBJ_FLAG_SCROLLABLE);
+  lv_obj_set_scrollbar_mode(stats_container, LV_SCROLLBAR_MODE_OFF);
   lv_obj_set_size(stats_container, 220, 80);
   lv_obj_align(stats_container, LV_ALIGN_BOTTOM_MID, 0, -20);
   lv_obj_set_style_bg_color(stats_container, lv_color_hex(0x1A1A1A), 0);
@@ -255,6 +263,8 @@ static void home_screen(lv_obj_t *scr) {
 
   /* Steps stat */
   lv_obj_t *steps_container = lv_obj_create(stats_container);
+  lv_obj_remove_flag(steps_container, LV_OBJ_FLAG_SCROLLABLE);
+  lv_obj_set_scrollbar_mode(steps_container, LV_SCROLLBAR_MODE_OFF);
   lv_obj_set_size(steps_container, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
   lv_obj_set_style_bg_opa(steps_container, LV_OPA_TRANSP, 0);
   lv_obj_set_style_border_width(steps_container, 0, 0);
@@ -273,6 +283,8 @@ static void home_screen(lv_obj_t *scr) {
 
   /* Heart rate stat */
   lv_obj_t *heart_container = lv_obj_create(stats_container);
+  lv_obj_remove_flag(heart_container, LV_OBJ_FLAG_SCROLLABLE);
+  lv_obj_set_scrollbar_mode(heart_container, LV_SCROLLBAR_MODE_OFF);
   lv_obj_set_size(heart_container, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
   lv_obj_set_style_bg_opa(heart_container, LV_OPA_TRANSP, 0);
   lv_obj_set_style_border_width(heart_container, 0, 0);
@@ -291,6 +303,8 @@ static void home_screen(lv_obj_t *scr) {
 
   /* Calories stat */
   lv_obj_t *cal_container = lv_obj_create(stats_container);
+  lv_obj_remove_flag(cal_container, LV_OBJ_FLAG_SCROLLABLE);
+  lv_obj_set_scrollbar_mode(cal_container, LV_SCROLLBAR_MODE_OFF);
   lv_obj_set_size(cal_container, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
   lv_obj_set_style_bg_opa(cal_container, LV_OPA_TRANSP, 0);
   lv_obj_set_style_border_width(cal_container, 0, 0);
