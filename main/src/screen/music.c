@@ -1,5 +1,6 @@
 #include "lvgl.h"
 #include "screen/music.h"
+#include "mod_lvgl.h"
 
 /* Global variables for player state */
 static lv_obj_t *play_pause_icon;
@@ -14,6 +15,14 @@ static void play_pause_event_cb(lv_event_t *e);
 static void backward_event_cb(lv_event_t *e);
 static void forward_event_cb(lv_event_t *e);
 static void progress_timer_cb(lv_timer_t *timer);
+
+static void music_screen_delete_cb(lv_event_t *e) {
+  if (progress_timer) {
+    lv_timer_delete(progress_timer);
+    progress_timer = NULL;
+  }
+  is_playing = false;
+}
 
 void music_screen(lv_obj_t *scr) {
   /* Disable scrolling */
@@ -145,6 +154,10 @@ void music_screen(lv_obj_t *scr) {
   lv_obj_set_style_text_font(forward_icon, &lv_font_montserrat_14, 0);
   lv_obj_set_style_text_color(forward_icon, lv_color_hex(0xB3B3B3), 0);
   lv_obj_center(forward_icon);
+
+  /* ADD GESTURE DETECTION */
+  ui_init_gestures(scr);
+  lv_obj_add_event_cb(scr, music_screen_delete_cb, LV_EVENT_DELETE, NULL);
 }
 
 /* === Callbacks === */
