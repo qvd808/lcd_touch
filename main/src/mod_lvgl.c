@@ -168,25 +168,6 @@ static lv_display_t *mod_lvgl_init(const display_handle_t *display) {
   return disp;
 }
 
-static bool is_music_active = false;
-
-void ui_load_home_screen(void) {
-  if (!is_music_active) return;
-  is_music_active = false;
-  ESP_LOGI("UI", "Loading Home Screen");
-  lv_obj_t *new_scr = lv_obj_create(NULL);
-  home_screen(new_scr);
-  lv_screen_load_anim(new_scr, LV_SCR_LOAD_ANIM_MOVE_RIGHT, 300, 0, true);
-}
-
-void ui_load_music_screen(void) {
-  if (is_music_active) return;
-  is_music_active = true;
-  ESP_LOGI("UI", "Loading Music Screen");
-  lv_obj_t *new_scr = lv_obj_create(NULL);
-  music_screen(new_scr);
-  lv_screen_load_anim(new_scr, LV_SCR_LOAD_ANIM_MOVE_LEFT, 300, 0, true);
-}
 
 void ui_init_gestures(lv_obj_t *scr) {
   lv_obj_add_event_cb(scr, gesture_event_cb, LV_EVENT_GESTURE, NULL);
@@ -198,10 +179,10 @@ void gesture_event_cb(lv_event_t *e) {
 
   switch (dir) {
   case LV_DIR_LEFT:
-    ui_load_music_screen();
+    ui_controller_next();
     break;
   case LV_DIR_RIGHT:
-    ui_load_home_screen();
+    ui_controller_prev();
     break;
   default:
     break;
@@ -222,9 +203,9 @@ void lvgl_task(void *arg) {
 
   mod_lv_init_input(lv_disp, touch_handle);
 
-  /* Get active screen */
-  lv_obj_t *scr = lv_display_get_screen_active(lv_disp);
-  home_screen(scr);
+  /* Initialize screen controller and load initial screen */
+  ui_controller_init();
+  ui_controller_load_initial();
 
   ESP_LOGI(TAG, "Starting LVGL task");
   uint32_t time_till_next_ms = 0;
