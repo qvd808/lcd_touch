@@ -25,6 +25,7 @@ extern "C" {
 #endif
 
 #include <stdbool.h>
+#include <stdint.h>
 #include "nimble/ble.h"
 #include "modlog/modlog.h"
 
@@ -35,6 +36,17 @@ struct ble_gatt_register_ctxt;
  * Initializes and starts the Bluetooth task.
  */
 void bluetooth_main_task(void *param);
+
+/**
+ * Sends a notification message to the connected peer.
+ */
+void bluetooth_send_notification(const char *msg);
+
+/**
+ * Sends a media control command notification to the connected peer.
+ * 0x01: Play/Pause, 0x02: Previous, 0x03: Next
+ */
+void bluetooth_send_media_command(uint8_t cmd);
 
 #ifdef __cplusplus
 }
