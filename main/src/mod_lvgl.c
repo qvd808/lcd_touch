@@ -14,6 +14,7 @@
 #include <stdbool.h>
 #include <sys/param.h>
 #include <sys/unistd.h>
+#include "screen/music.h"
 
 // ################## PRIVATE VARIABLE ###############################
 static const char *TAG = "MOD_LVGL";
@@ -321,12 +322,6 @@ static void home_screen(lv_obj_t *scr) {
   lv_obj_set_style_text_color(cal_value, lv_color_white(), 0);
   lv_obj_set_style_text_font(cal_value, &lv_font_montserrat_14, 0);
 
-  /* Swipe indicator */
-  lv_obj_t *swipe_hint = lv_label_create(scr);
-  lv_label_set_text(swipe_hint, "< Swipe >");
-  lv_obj_set_style_text_color(swipe_hint, lv_color_hex(0x555555), 0);
-  lv_obj_align(swipe_hint, LV_ALIGN_BOTTOM_MID, 0, -5);
-
   /* ADD GESTURE DETECTION */
   lv_obj_add_event_cb(scr, gesture_event_cb, LV_EVENT_GESTURE, time_label);
 }
@@ -345,7 +340,8 @@ void lvgl_task(void *arg) {
 
   /* Get active screen */
   lv_obj_t *scr = lv_display_get_screen_active(lv_disp);
-  home_screen(scr);
+  // home_screen(scr);
+  music_screen(scr);
 
   ESP_LOGI(TAG, "Starting LVGL task");
   uint32_t time_till_next_ms = 0;
