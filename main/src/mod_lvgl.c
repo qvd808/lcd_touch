@@ -21,6 +21,36 @@ static const char *TAG = "MOD_LVGL";
 // different tasks, so use a mutex to protect it
 static _lock_t lvgl_api_lock;
 
+static lv_display_rotation_t current_rotation = LV_DISPLAY_ROTATION_90;
+
+static void example_lvgl_port_update_callback(lv_display_t *disp) {
+  esp_lcd_panel_handle_t panel_handle = lv_display_get_user_data(disp);
+  lv_display_rotation_t rotation = lv_display_get_rotation(disp);
+
+  switch (rotation) {
+  case LV_DISPLAY_ROTATION_0:
+    // Rotate LCD display
+    esp_lcd_panel_swap_xy(panel_handle, false);
+    esp_lcd_panel_mirror(panel_handle, true, false);
+    break;
+  case LV_DISPLAY_ROTATION_90:
+    // Rotate LCD display
+    esp_lcd_panel_swap_xy(panel_handle, true);
+    esp_lcd_panel_mirror(panel_handle, true, true);
+    break;
+  case LV_DISPLAY_ROTATION_180:
+    // Rotate LCD display
+    esp_lcd_panel_swap_xy(panel_handle, false);
+    esp_lcd_panel_mirror(panel_handle, false, true);
+    break;
+  case LV_DISPLAY_ROTATION_270:
+    // Rotate LCD display
+    esp_lcd_panel_swap_xy(panel_handle, true);
+    esp_lcd_panel_mirror(panel_handle, false, false);
+    break;
+  }
+}
+
 // ################## PRIVATE FUNCTION ###############################
 /* -------------------- LVGL ↔ LCD callbacks -------------------- */
 
@@ -38,6 +68,7 @@ static void increase_lvgl_tick(void *arg) {
 
 static void lvgl_flush_cb(lv_display_t *disp, const lv_area_t *area,
                           uint8_t *px_map) {
+  example_lvgl_port_update_callback(disp);
   esp_lcd_panel_handle_t panel =
       (esp_lcd_panel_handle_t)lv_display_get_user_data(disp);
 
@@ -129,6 +160,8 @@ static lv_display_t *mod_lvgl_init(const display_handle_t *display) {
 
   ESP_ERROR_CHECK(esp_lcd_panel_io_register_event_callbacks(display->io_handle,
                                                             &cbs, disp));
+
+  lv_display_set_rotation(disp, current_rotation);
 
   return disp;
 }
