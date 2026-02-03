@@ -1,0 +1,45 @@
+# ESP32 Smartwatch GATT Specification
+
+This document describes the BLE GATT services and characteristics provided by the smartwatch for mobile interaction.
+
+## Device Information
+- **Device Name**: nimble-test (Default)
+- **Appearance**: Generic Watch (0x00C1)
+
+## Custom Service
+- **Service UUID**: 59462f12-9543-9999-12c8-58b459a2712d
+  (Bytes: 2d:71:a2:59:b4:58:c8:12:99:99:43:95:12:2f:46:59)
+
+### Characteristics
+
+#### 1. Step Count
+- **UUID**: 59462f12-9543-9999-12c8-58b459a2712e
+  (Bytes: 2e:71:a2:59:b4:58:c8:12:99:99:43:95:12:2f:46:59)
+- **Properties**: Read, Write
+- **Format**: uint32 (4 bytes, Little Endian)
+- **Description**: Updates the step counter shown on the home screen.
+
+#### 2. Song Progress
+- **UUID**: 59462f12-9543-9999-12c8-58b459a2712f
+  (Bytes: 2f:71:a2:59:b4:58:c8:12:99:99:43:95:12:2f:46:59)
+- **Properties**: Read, Write
+- **Format**: uint32 (4 bytes, Little Endian) - Seconds
+- **Description**: Updates the progress bar and current time on the music screen.
+
+#### 3. Media Control (Server-to-Client)
+- **UUID**: 59462f12-9543-9999-12c8-58b459a27130
+  (Bytes: 30:71:a2:59:b4:58:c8:12:99:99:43:95:12:2f:46:59)
+- **Properties**: Notify
+- **Format**: uint8 (1 byte)
+- **Values**:
+    - `0x01`: Play / Pause toggle
+    - `0x02`: Previous Song
+    - `0x03`: Next Song
+- **Description**: Sent when physical buttons or touch buttons on the watch are pressed.
+
+#### 4. General Notification (Server-to-Client)
+- **UUID**: 59462f12-9543-9999-12c8-58b459a27131
+  (Bytes: 31:71:a2:59:b4:58:c8:12:99:99:43:95:12:2f:46:59)
+- **Properties**: Notify
+- **Format**: UTF-8 String
+- **Description**: Used for general status messages or alerts from the watch.
