@@ -35,6 +35,7 @@
 #include "util.h"
 #include "screen/home.h"
 #include "screen/music.h"
+#include "mod_state.h"
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
@@ -223,6 +224,7 @@ static int gatt_svc_access(uint16_t conn_handle, uint16_t attr_handle,
         rc = gatt_svr_write(ctxt->om, sizeof(steps), sizeof(steps), &steps, NULL);
         if (rc == 0) {
             ESP_LOGI("NimBLE", "Steps updated: %" PRIu32, steps);
+            mod_state_get()->steps = steps;
             home_update_steps(steps);
         }
         return rc;
@@ -231,6 +233,7 @@ static int gatt_svc_access(uint16_t conn_handle, uint16_t attr_handle,
         rc = gatt_svr_write(ctxt->om, sizeof(progress), sizeof(progress), &progress, NULL);
         if (rc == 0) {
             ESP_LOGI("NimBLE", "Progress updated: %" PRIu32, progress);
+            mod_state_get()->music_progress = progress;
             music_update_progress(progress);
         }
         return rc;
@@ -585,6 +588,7 @@ void bluetooth_main_task(void *param) {
   rc = ble_svc_gap_device_name_set("nimble-test");
   assert(rc == 0);
 
+  mod_state_init();
   ble_store_config_init();
 
   ESP_LOGI(TAG, "BLE Host Task Started");

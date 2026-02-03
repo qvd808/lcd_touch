@@ -11,6 +11,7 @@ set(SOURCES
 	"src/screen/music.c"
 	"src/screen/home.c"
 	"src/mod_screen_controller.c"
+	"src/mod_state.c"
 	# "src/mod_wifi.c" -- Removed wifi for now
 )
 

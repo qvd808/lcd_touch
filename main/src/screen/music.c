@@ -2,6 +2,7 @@
 #include "bluetooth.h"
 #include "lvgl.h"
 #include "mod_lvgl.h"
+#include "mod_state.h"
 
 /* Global variables for player state */
 static lv_obj_t *play_pause_icon;
@@ -64,7 +65,7 @@ void music_screen(lv_obj_t *scr) {
 
   /* Song title */
   lv_obj_t *song_title = lv_label_create(scr);
-  lv_label_set_text(song_title, "Summer Vibes");
+  lv_label_set_text(song_title, mod_state_get()->music_song);
   lv_obj_set_style_text_font(song_title, &lv_font_montserrat_14, 0);
   lv_obj_set_style_text_letter_space(song_title, 1, 0);
   lv_obj_set_style_text_color(song_title, lv_color_white(), 0);
@@ -72,7 +73,7 @@ void music_screen(lv_obj_t *scr) {
 
   /* Artist name */
   lv_obj_t *artist_name = lv_label_create(scr);
-  lv_label_set_text(artist_name, "Digital Dreams");
+  lv_label_set_text(artist_name, mod_state_get()->music_artist);
   lv_obj_set_style_text_font(artist_name, &lv_font_montserrat_12, 0);
   lv_obj_set_style_text_color(artist_name, lv_color_hex(0xB3B3B3), 0);
   lv_obj_set_style_text_opa(artist_name, LV_OPA_70, 0);
@@ -96,11 +97,12 @@ void music_screen(lv_obj_t *scr) {
   lv_obj_set_style_bg_color(progress_bar, lv_color_hex(0x1DB954),
                             LV_PART_INDICATOR);
   lv_bar_set_range(progress_bar, 0, 225);
-  lv_bar_set_value(progress_bar, 83, LV_ANIM_OFF);
+  lv_bar_set_value(progress_bar, mod_state_get()->music_progress, LV_ANIM_OFF);
 
   /* Time labels */
   current_time_label = lv_label_create(progress_container);
-  lv_label_set_text(current_time_label, "1:23");
+  lv_label_set_text_fmt(current_time_label, "%d:%02d", (int)(mod_state_get()->music_progress / 60),
+                        (int)(mod_state_get()->music_progress % 60));
   lv_obj_set_style_text_font(current_time_label, &lv_font_montserrat_12, 0);
   lv_obj_set_style_text_color(current_time_label, lv_color_hex(0xB3B3B3), 0);
   lv_obj_align(current_time_label, LV_ALIGN_LEFT_MID, 0, 0);

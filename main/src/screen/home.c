@@ -1,5 +1,6 @@
 #include "screen/home.h"
 #include "mod_lvgl.h"
+#include "mod_state.h"
 #include <inttypes.h>
 #include <stdint.h>
 
@@ -87,7 +88,7 @@ void home_screen(lv_obj_t *scr) {
   lv_obj_set_style_text_color(steps_icon, lv_color_hex(0xFF6B6B), 0);
 
   steps_label = lv_label_create(steps_container);
-  lv_label_set_text(steps_label, "8,432");
+  lv_label_set_text_fmt(steps_label, "%" PRIu32, mod_state_get()->steps);
   lv_obj_set_style_text_color(steps_label, lv_color_white(), 0);
   lv_obj_set_style_text_font(steps_label, &lv_font_montserrat_14, 0);
 
