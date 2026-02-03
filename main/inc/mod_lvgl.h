@@ -5,7 +5,9 @@
 #include "mod_screen_controller.h"
 
 void lvgl_task(void *arg);
-void gesture_event_cb(lv_event_t *e);
-void ui_init_gestures(lv_obj_t *scr);
+
+/* Thread-safety helpers for LVGL */
+void lvgl_lock(void);
+void lvgl_unlock(void);
 
 #endif //__MOD_LVGL_H__

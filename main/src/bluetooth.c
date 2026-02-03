@@ -33,9 +33,13 @@
 #include "services/gap/ble_svc_gap.h"
 #include "services/gatt/ble_svc_gatt.h"
 #include "util.h"
+#include "screen/home.h"
+#include "screen/music.h"
+#include "mod_state.h"
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
+#include <inttypes.h>
 
 static const char *TAG = "BLUETOOTH";
 
@@ -58,6 +62,30 @@ static const ble_uuid128_t gatt_svr_svc_uuid =
     BLE_UUID128_INIT(0x2d, 0x71, 0xa2, 0x59, 0xb4, 0x58, 0xc8, 0x12, 0x99, 0x99,
                      0x43, 0x95, 0x12, 0x2f, 0x46, 0x59);
 
+/* Step Count Characteristic: Write/Read */
+static uint16_t gatt_svr_chr_steps_handle;
+static const ble_uuid128_t gatt_svr_chr_steps_uuid =
+    BLE_UUID128_INIT(0x2e, 0x71, 0xa2, 0x59, 0xb4, 0x58, 0xc8, 0x12, 0x99, 0x99,
+                     0x43, 0x95, 0x12, 0x2f, 0x46, 0x59);
+
+/* Song Progress Characteristic: Write/Read */
+static uint16_t gatt_svr_chr_progress_handle;
+static const ble_uuid128_t gatt_svr_chr_progress_uuid =
+    BLE_UUID128_INIT(0x2f, 0x71, 0xa2, 0x59, 0xb4, 0x58, 0xc8, 0x12, 0x99, 0x99,
+                     0x43, 0x95, 0x12, 0x2f, 0x46, 0x59);
+
+/* Media Control Characteristic: Notify (ESP32 -> Phone) */
+static uint16_t gatt_svr_chr_media_ctrl_handle;
+static const ble_uuid128_t gatt_svr_chr_media_ctrl_uuid =
+    BLE_UUID128_INIT(0x30, 0x71, 0xa2, 0x59, 0xb4, 0x58, 0xc8, 0x12, 0x99, 0x99,
+                     0x43, 0x95, 0x12, 0x2f, 0x46, 0x59);
+
+/* Notification Characteristic: Notify (ESP32 -> Phone) */
+static uint16_t gatt_svr_chr_notify_handle;
+static const ble_uuid128_t gatt_svr_chr_notify_uuid =
+    BLE_UUID128_INIT(0x31, 0x71, 0xa2, 0x59, 0xb4, 0x58, 0xc8, 0x12, 0x99, 0x99,
+                     0x43, 0x95, 0x12, 0x2f, 0x46, 0x59);
+
 static uint8_t own_addr_type;
 
 static void bleprph_advertise(void);
@@ -73,8 +101,7 @@ static const struct ble_gatt_svc_def gatt_svr_svcs[] = {
         .characteristics =
             (struct ble_gatt_chr_def[]){
                 {
-                    /*** This characteristic can be subscribed to by writing
-                       0x00 and 0x01 to the CCCD ***/
+                    /* Old characteristic preserved for now */
                     .uuid = &gatt_svr_chr_uuid.u,
                     .access_cb = gatt_svc_access,
                     .flags = BLE_GATT_CHR_F_READ | BLE_GATT_CHR_F_WRITE |
@@ -88,9 +115,36 @@ static const struct ble_gatt_svc_def gatt_svr_svcs[] = {
                                 .access_cb = gatt_svc_access,
                             },
                             {
-                                0, /* No more descriptors in this characteristic
-                                    */
+                                0,
                             }},
+                },
+                {
+                    /* Step Count */
+                    .uuid = &gatt_svr_chr_steps_uuid.u,
+                    .access_cb = gatt_svc_access,
+                    .flags = BLE_GATT_CHR_F_READ | BLE_GATT_CHR_F_WRITE,
+                    .val_handle = &gatt_svr_chr_steps_handle,
+                },
+                {
+                    /* Song Progress */
+                    .uuid = &gatt_svr_chr_progress_uuid.u,
+                    .access_cb = gatt_svc_access,
+                    .flags = BLE_GATT_CHR_F_READ | BLE_GATT_CHR_F_WRITE,
+                    .val_handle = &gatt_svr_chr_progress_handle,
+                },
+                {
+                    /* Media Control (Notify) */
+                    .uuid = &gatt_svr_chr_media_ctrl_uuid.u,
+                    .access_cb = gatt_svc_access,
+                    .flags = BLE_GATT_CHR_F_NOTIFY,
+                    .val_handle = &gatt_svr_chr_media_ctrl_handle,
+                },
+                {
+                    /* General Notification (Notify) */
+                    .uuid = &gatt_svr_chr_notify_uuid.u,
+                    .access_cb = gatt_svc_access,
+                    .flags = BLE_GATT_CHR_F_NOTIFY,
+                    .val_handle = &gatt_svr_chr_notify_handle,
                 },
                 {
                     0, /* No more characteristics in this service. */
@@ -165,6 +219,24 @@ static int gatt_svc_access(uint16_t conn_handle, uint16_t attr_handle,
       MODLOG_DFLT(INFO, "Notification/Indication scheduled for "
                         "all subscribed peers.\n");
       return rc;
+    } else if (attr_handle == gatt_svr_chr_steps_handle) {
+        uint32_t steps = 0;
+        rc = gatt_svr_write(ctxt->om, sizeof(steps), sizeof(steps), &steps, NULL);
+        if (rc == 0) {
+            ESP_LOGI("NimBLE", "Steps updated: %" PRIu32, steps);
+            mod_state_get()->steps = steps;
+            home_update_steps(steps);
+        }
+        return rc;
+    } else if (attr_handle == gatt_svr_chr_progress_handle) {
+        uint32_t progress = 0;
+        rc = gatt_svr_write(ctxt->om, sizeof(progress), sizeof(progress), &progress, NULL);
+        if (rc == 0) {
+            ESP_LOGI("NimBLE", "Progress updated: %" PRIu32, progress);
+            mod_state_get()->music_progress = progress;
+            music_update_progress(progress);
+        }
+        return rc;
     }
     goto unknown;
 
@@ -516,9 +588,32 @@ void bluetooth_main_task(void *param) {
   rc = ble_svc_gap_device_name_set("nimble-test");
   assert(rc == 0);
 
+  mod_state_init();
   ble_store_config_init();
 
   ESP_LOGI(TAG, "BLE Host Task Started");
   nimble_port_run();
   nimble_port_freertos_deinit();
+}
+
+void bluetooth_send_notification(const char *msg) {
+    if (gatt_svr_chr_notify_handle == 0) return;
+    
+    struct os_mbuf *om = ble_hs_mbuf_from_flat(msg, strlen(msg));
+    if (om) {
+        ble_gatts_notify_custom(0, gatt_svr_chr_notify_handle, om);
+    }
+}
+
+void bluetooth_send_media_command(uint8_t cmd) {
+    if (gatt_svr_chr_media_ctrl_handle == 0) return;
+    
+    struct os_mbuf *om = ble_hs_mbuf_from_flat(&cmd, sizeof(cmd));
+    if (om) {
+        // Handle 0 is usually the first connected peer in simple cases, 
+        // but real apps should track active connection handles.
+        // For this test, we assume connection handle 1 or similar if active.
+        // ble_gatts_notify_custom is for server -> client
+        ble_gatts_notify_custom(0, gatt_svr_chr_media_ctrl_handle, om);
+    }
 }

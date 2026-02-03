@@ -1,6 +1,8 @@
-#include "lvgl.h"
 #include "screen/music.h"
+#include "bluetooth.h"
+#include "lvgl.h"
 #include "mod_lvgl.h"
+#include "mod_state.h"
 
 /* Global variables for player state */
 static lv_obj_t *play_pause_icon;
@@ -22,6 +24,10 @@ static void music_screen_delete_cb(lv_event_t *e) {
     progress_timer = NULL;
   }
   is_playing = false;
+  progress_bar = NULL;
+  current_time_label = NULL;
+  play_pause_icon = NULL;
+  album_art_container = NULL;
 }
 
 void music_screen(lv_obj_t *scr) {
@@ -59,7 +65,7 @@ void music_screen(lv_obj_t *scr) {
 
   /* Song title */
   lv_obj_t *song_title = lv_label_create(scr);
-  lv_label_set_text(song_title, "Summer Vibes");
+  lv_label_set_text(song_title, mod_state_get()->music_song);
   lv_obj_set_style_text_font(song_title, &lv_font_montserrat_14, 0);
   lv_obj_set_style_text_letter_space(song_title, 1, 0);
   lv_obj_set_style_text_color(song_title, lv_color_white(), 0);
@@ -67,7 +73,7 @@ void music_screen(lv_obj_t *scr) {
 
   /* Artist name */
   lv_obj_t *artist_name = lv_label_create(scr);
-  lv_label_set_text(artist_name, "Digital Dreams");
+  lv_label_set_text(artist_name, mod_state_get()->music_artist);
   lv_obj_set_style_text_font(artist_name, &lv_font_montserrat_12, 0);
   lv_obj_set_style_text_color(artist_name, lv_color_hex(0xB3B3B3), 0);
   lv_obj_set_style_text_opa(artist_name, LV_OPA_70, 0);
@@ -88,13 +94,15 @@ void music_screen(lv_obj_t *scr) {
   lv_obj_align(progress_bar, LV_ALIGN_CENTER, 0, 0);
   lv_obj_set_style_radius(progress_bar, 2, 0);
   lv_obj_set_style_bg_color(progress_bar, lv_color_hex(0x404040), 0);
-  lv_obj_set_style_bg_color(progress_bar, lv_color_hex(0x1DB954), LV_PART_INDICATOR);
+  lv_obj_set_style_bg_color(progress_bar, lv_color_hex(0x1DB954),
+                            LV_PART_INDICATOR);
   lv_bar_set_range(progress_bar, 0, 225);
-  lv_bar_set_value(progress_bar, 83, LV_ANIM_OFF);
+  lv_bar_set_value(progress_bar, mod_state_get()->music_progress, LV_ANIM_OFF);
 
   /* Time labels */
   current_time_label = lv_label_create(progress_container);
-  lv_label_set_text(current_time_label, "1:23");
+  lv_label_set_text_fmt(current_time_label, "%d:%02d", (int)(mod_state_get()->music_progress / 60),
+                        (int)(mod_state_get()->music_progress % 60));
   lv_obj_set_style_text_font(current_time_label, &lv_font_montserrat_12, 0);
   lv_obj_set_style_text_color(current_time_label, lv_color_hex(0xB3B3B3), 0);
   lv_obj_align(current_time_label, LV_ALIGN_LEFT_MID, 0, 0);
@@ -134,7 +142,8 @@ void music_screen(lv_obj_t *scr) {
   lv_obj_set_size(play_pause_btn, 40, 40);
   lv_obj_set_style_bg_color(play_pause_btn, lv_color_white(), 0);
   lv_obj_set_style_radius(play_pause_btn, 20, 0);
-  lv_obj_add_event_cb(play_pause_btn, play_pause_event_cb, LV_EVENT_CLICKED, NULL);
+  lv_obj_add_event_cb(play_pause_btn, play_pause_event_cb, LV_EVENT_CLICKED,
+                      NULL);
 
   play_pause_icon = lv_label_create(play_pause_btn);
   lv_label_set_text(play_pause_icon, LV_SYMBOL_PLAY);
@@ -176,13 +185,16 @@ static void play_pause_event_cb(lv_event_t *e) {
     if (progress_timer)
       lv_timer_pause(progress_timer);
   }
+  bluetooth_send_media_command(0x01); // Play/Pause
 }
 
 static void backward_event_cb(lv_event_t *e) {
   int32_t v = lv_bar_get_value(progress_bar);
   v = LV_MAX(v - 10, 0);
   lv_bar_set_value(progress_bar, v, LV_ANIM_ON);
-  lv_label_set_text_fmt(current_time_label, "%d:%02d", (int)(v / 60), (int)(v % 60));
+  lv_label_set_text_fmt(current_time_label, "%d:%02d", (int)(v / 60),
+                        (int)(v % 60));
+  bluetooth_send_media_command(0x02); // Previous
 }
 
 static void forward_event_cb(lv_event_t *e) {
@@ -190,11 +202,14 @@ static void forward_event_cb(lv_event_t *e) {
   int32_t max = lv_bar_get_max_value(progress_bar);
   v = LV_MIN(v + 10, max);
   lv_bar_set_value(progress_bar, v, LV_ANIM_ON);
-  lv_label_set_text_fmt(current_time_label, "%d:%02d", (int)(v / 60), (int)(v % 60));
+  lv_label_set_text_fmt(current_time_label, "%d:%02d", (int)(v / 60),
+                        (int)(v % 60));
+  bluetooth_send_media_command(0x03); // Next
 }
 
 static void progress_timer_cb(lv_timer_t *timer) {
-  if (!is_playing) return;
+  if (!is_playing)
+    return;
 
   int32_t v = lv_bar_get_value(progress_bar);
   int32_t max = lv_bar_get_max_value(progress_bar);
@@ -202,7 +217,8 @@ static void progress_timer_cb(lv_timer_t *timer) {
   if (v < max) {
     v++;
     lv_bar_set_value(progress_bar, v, LV_ANIM_OFF);
-    lv_label_set_text_fmt(current_time_label, "%d:%02d", (int)(v / 60), (int)(v % 60));
+    lv_label_set_text_fmt(current_time_label, "%d:%02d", (int)(v / 60),
+                          (int)(v % 60));
   } else {
     is_playing = false;
     lv_label_set_text(play_pause_icon, LV_SYMBOL_PLAY);
@@ -210,4 +226,13 @@ static void progress_timer_cb(lv_timer_t *timer) {
     lv_label_set_text(current_time_label, "0:00");
     lv_timer_pause(progress_timer);
   }
+}
+void music_update_progress(uint32_t progress_sec) {
+  lvgl_lock();
+  if (progress_bar && current_time_label) {
+    lv_bar_set_value(progress_bar, progress_sec, LV_ANIM_ON);
+    lv_label_set_text_fmt(current_time_label, "%d:%02d",
+                          (int)(progress_sec / 60), (int)(progress_sec % 60));
+  }
+  lvgl_unlock();
 }

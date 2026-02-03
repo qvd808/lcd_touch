@@ -1,5 +1,12 @@
 #include "screen/home.h"
 #include "mod_lvgl.h"
+#include "mod_state.h"
+#include <inttypes.h>
+#include <stdint.h>
+
+static lv_obj_t *steps_label = NULL;
+
+static void home_screen_delete_cb(lv_event_t *e) { steps_label = NULL; }
 
 void home_screen(lv_obj_t *scr) {
   /* Disable scrolling and scrollbar on main screen */
@@ -80,10 +87,10 @@ void home_screen(lv_obj_t *scr) {
   lv_label_set_text(steps_icon, LV_SYMBOL_SHUFFLE);
   lv_obj_set_style_text_color(steps_icon, lv_color_hex(0xFF6B6B), 0);
 
-  lv_obj_t *steps_value = lv_label_create(steps_container);
-  lv_label_set_text(steps_value, "8,432");
-  lv_obj_set_style_text_color(steps_value, lv_color_white(), 0);
-  lv_obj_set_style_text_font(steps_value, &lv_font_montserrat_14, 0);
+  steps_label = lv_label_create(steps_container);
+  lv_label_set_text_fmt(steps_label, "%" PRIu32, mod_state_get()->steps);
+  lv_obj_set_style_text_color(steps_label, lv_color_white(), 0);
+  lv_obj_set_style_text_font(steps_label, &lv_font_montserrat_14, 0);
 
   /* Heart rate stat */
   lv_obj_t *heart_container = lv_obj_create(stats_container);
@@ -127,4 +134,12 @@ void home_screen(lv_obj_t *scr) {
 
   /* ADD GESTURE DETECTION */
   ui_init_gestures(scr);
+  lv_obj_add_event_cb(scr, home_screen_delete_cb, LV_EVENT_DELETE, NULL);
+}
+void home_update_steps(uint32_t steps) {
+  lvgl_lock();
+  if (steps_label) {
+    lv_label_set_text_fmt(steps_label, "%" PRIu32, steps);
+  }
+  lvgl_unlock();
 }

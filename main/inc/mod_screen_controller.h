@@ -36,4 +36,9 @@ void ui_controller_prev(void);
  */
 void ui_controller_load_initial(void);
 
+/**
+ * @brief Initialize gestures for a screen
+ */
+void ui_init_gestures(lv_obj_t *scr);
+
 #endif // __MOD_SCREEN_CONTROLLER_H__
