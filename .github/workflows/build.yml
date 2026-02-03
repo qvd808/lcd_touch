@@ -66,6 +66,8 @@ jobs:
 
       - name: Extract binary sizes
         id: sizes
+        env:
+          TARGET: ${{ matrix.target }}
         run: |
           chmod +x .github/scripts/extract_sizes.sh
           .github/scripts/extract_sizes.sh
@@ -73,11 +75,13 @@ jobs:
           echo "CURRENT_GIT_COMMIT=${GIT_COMMIT}" >> $GITHUB_ENV
 
       - name: Update build data (clean branch)
+        if: github.ref == 'refs/heads/main'
+        env:
+          TARGET: ${{ matrix.target }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           chmod +x .github/scripts/update_build_data.sh
           .github/scripts/update_build_data.sh
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create build summary
         run: |
