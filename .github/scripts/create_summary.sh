@@ -6,8 +6,11 @@ set -e
 
 echo "=== Creating build summary ==="
 
+# Get target from environment
+TARGET=${TARGET:-unknown}
+
 # Create build summary
-echo "## 🔨 ESP-IDF Build Results" >> $GITHUB_STEP_SUMMARY
+echo "## 🔨 ESP-IDF Build Results ($TARGET)" >> $GITHUB_STEP_SUMMARY
 echo "| Component | Size | Change |" >> $GITHUB_STEP_SUMMARY
 echo "|-----------|------|---------|" >> $GITHUB_STEP_SUMMARY
 echo "| Bootloader | ${BOOTLOADER_SIZE} bytes | - |" >> $GITHUB_STEP_SUMMARY
@@ -23,4 +26,4 @@ else
   echo "ℹ️ **Status**: No size changes - skipped artifact upload" >> $GITHUB_STEP_SUMMARY
 fi
 
-echo "✅ Build summary created"
+echo "✅ Build summary created for target: $TARGET"

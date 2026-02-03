@@ -9,18 +9,20 @@ echo "📊 Updating build data using Git index operations"
 # Get values from GitHub Actions environment
 TIMESTAMP=$(date -u '+%Y-%m-%d %H:%M:%S UTC')
 COMMIT_HASH=${GIT_COMMIT:-$(git rev-parse --short HEAD)}
+TARGET=${TARGET:-unknown}
 TOTAL_SIZE=${TOTAL_SIZE:-0}
 BOOTLOADER_SIZE=${BOOTLOADER_SIZE:-0}
 APP_SIZE=${APP_SIZE:-0}
 PARTITION_TABLE_SIZE=${PARTITION_TABLE_SIZE:-0}
 
 echo "📋 Build data to record:"
-echo "	- Timestamp: $TIMESTAMP"
-echo "	- Commit: $COMMIT_HASH"
-echo "	- Total Size: $TOTAL_SIZE bytes"
-echo "	- Bootloader Size: $BOOTLOADER_SIZE bytes"
-echo "	- App Size: $APP_SIZE bytes"
-echo "	- Partition Table Size: $PARTITION_TABLE_SIZE bytes"
+echo "\t- Target: $TARGET"
+echo "\t- Timestamp: $TIMESTAMP"
+echo "\t- Commit: $COMMIT_HASH"
+echo "\t- Total Size: $TOTAL_SIZE bytes"
+echo "\t- Bootloader Size: $BOOTLOADER_SIZE bytes"
+echo "\t- App Size: $APP_SIZE bytes"
+echo "\t- Partition Table Size: $PARTITION_TABLE_SIZE bytes"
 
 # Store current branch info
 ORIGINAL_BRANCH=$(git branch --show-current)
@@ -39,14 +41,14 @@ if ! (git ls-remote --heads origin build_data | grep -q build_data); then
 	
 	# Create initial files in memory
 	cat > build_data_temp.csv << EOF
-timestamp,commit,total_size,bootloader_size,app_size,partition_table_size
-$TIMESTAMP,$COMMIT_HASH,$TOTAL_SIZE,$BOOTLOADER_SIZE,$APP_SIZE,$PARTITION_TABLE_SIZE
+target,timestamp,commit,total_size,bootloader_size,app_size,partition_table_size
+$TARGET,$TIMESTAMP,$COMMIT_HASH,$TOTAL_SIZE,$BOOTLOADER_SIZE,$APP_SIZE,$PARTITION_TABLE_SIZE
 EOF
 	
 	cat > README_temp.md << EOF
 # Build Data Branch
 
-This branch contains build size tracking data.
+This branch contains build size tracking data for multiple targets.
 EOF
 	
 	# Create orphan branch using index operations
@@ -66,7 +68,7 @@ EOF
 	git push origin build_data
 	
 	echo "✅ Successfully created and pushed new build_data branch"
-	echo "📊 Done. Initial build data created for commit: $COMMIT_HASH"
+	echo "📊 Done. Initial build data created for commit: $COMMIT_HASH (target: $TARGET)"
 	
 	# Clean exit - return to original branch
 	git checkout "$ORIGINAL_BRANCH"
@@ -83,9 +85,26 @@ echo "🔍 Extracting build_data.csv from build_data branch..."
 # Extract the current build_data.csv from the build_data branch
 if git show origin/build_data:build_data.csv > build_data_temp.csv 2>/dev/null; then
 	echo "✅ Successfully extracted build_data.csv"
+	
+	# Check if the CSV has the target column (new format)
+	HEADER=$(head -n 1 build_data_temp.csv)
+	if [[ "$HEADER" != "target,"* ]]; then
+		echo "🔄 Migrating old CSV format to include target column..."
+		# Old format: timestamp,commit,total_size,bootloader_size,app_size,partition_table_size
+		# New format: target,timestamp,commit,total_size,bootloader_size,app_size,partition_table_size
+		
+		# Create migrated CSV
+		echo "target,timestamp,commit,total_size,bootloader_size,app_size,partition_table_size" > build_data_migrated.csv
+		tail -n +2 build_data_temp.csv | while IFS= read -r line; do
+			# Add 'esp32c6' as default target for old entries (assume they were esp32c6)
+			echo "esp32c6,$line" >> build_data_migrated.csv
+		done
+		mv build_data_migrated.csv build_data_temp.csv
+		echo "✅ Migration completed"
+	fi
 else
 	echo "⚠️ build_data.csv not found, creating new one"
-	echo "timestamp,commit,total_size,bootloader_size,app_size,partition_table_size" > build_data_temp.csv
+	echo "target,timestamp,commit,total_size,bootloader_size,app_size,partition_table_size" > build_data_temp.csv
 fi
 
 # Clean and filter build_data.csv: keep only entries whose commit is in main
@@ -96,54 +115,56 @@ last_boot=0
 last_app=0
 last_part=0
 
-if [ -f build_data_temp.csv ] && [ $(wc -l < build_data_temp.csv) -gt 1 ]; then
+if [ -f build_data_temp.csv ] && [ $(wc -l <build_data_temp.csv) -gt 1 ]; then
 	echo "🧹 Filtering build_data.csv to only include commits in $ORIGINAL_BRANCH"
 	head -n 1 build_data_temp.csv > build_data_filtered.csv  # Keep header
 	mapfile -t lines < <(tail -n +2 build_data_temp.csv)
 
 	for entry in "${lines[@]}"; do
-		IFS=',' read -r timestamp commit total boot app part <<< "$entry"
+		IFS=',' read -r target timestamp commit total boot app part <<< "$entry"
 		# Check if commit exists in current branch
 		if git merge-base --is-ancestor "$commit" HEAD 2>/dev/null; then
 			echo "$entry" >> build_data_filtered.csv
-			# Track the latest valid entry
-			latest_main_commit="$commit"
-			last_total=$total
-			last_boot=$boot
-			last_app=$app
-			last_part=$part
+			# Track the latest valid entry FOR THIS TARGET
+			if [ "$target" = "$TARGET" ]; then
+				latest_main_commit="$commit"
+				last_total=$total
+				last_boot=$boot
+				last_app=$app
+				last_part=$part
+			fi
 		else
-			echo "🗑️ Removing entry for commit not in $ORIGINAL_BRANCH: $commit"
+			echo "🗑️ Removing entry for commit not in $ORIGINAL_BRANCH: $commit (target: $target)"
 		fi
 	done
 
 	mv build_data_filtered.csv build_data_temp.csv
 
 	if [ -n "$latest_main_commit" ]; then
-		echo "✅ Latest commit in $ORIGINAL_BRANCH for comparison: $latest_main_commit"
+		echo "✅ Latest commit in $ORIGINAL_BRANCH for target $TARGET: $latest_main_commit"
 
 		if [ "$TOTAL_SIZE" -eq "$last_total" ] && \
 		   [ "$BOOTLOADER_SIZE" -eq "$last_boot" ] && \
 		   [ "$APP_SIZE" -eq "$last_app" ] && \
 		   [ "$PARTITION_TABLE_SIZE" -eq "$last_part" ]; then
-			echo "🔄 Build sizes unchanged. Skipping update."
+			echo "🔄 Build sizes unchanged for target $TARGET. Skipping update."
 			should_append=false
 		else
-			echo "📈 Build sizes changed:"
-			echo "	- Total: $last_total -> $TOTAL_SIZE"
-			echo "	- Bootloader: $last_boot -> $BOOTLOADER_SIZE"
-			echo "	- App: $last_app -> $APP_SIZE"
-			echo "	- Partition Table: $last_part -> $PARTITION_TABLE_SIZE"
+			echo "📈 Build sizes changed for target $TARGET:"
+			echo "\t- Total: $last_total -> $TOTAL_SIZE"
+			echo "\t- Bootloader: $last_boot -> $BOOTLOADER_SIZE"
+			echo "\t- App: $last_app -> $APP_SIZE"
+			echo "\t- Partition Table: $last_part -> $PARTITION_TABLE_SIZE"
 		fi
 	else
-		echo "⚠️ No entries found that exist in $ORIGINAL_BRANCH. Appending as first valid entry."
+		echo "⚠️ No entries found for target $TARGET in $ORIGINAL_BRANCH. Appending as first valid entry."
 	fi
 fi
 
 # Append new data if needed and commit using index operations
 if [ "$should_append" = true ]; then
-	echo "📝 Appending new build data entry..."
-	echo "$TIMESTAMP,$COMMIT_HASH,$TOTAL_SIZE,$BOOTLOADER_SIZE,$APP_SIZE,$PARTITION_TABLE_SIZE" >> build_data_temp.csv
+	echo "📝 Appending new build data entry for target $TARGET..."
+	echo "$TARGET,$TIMESTAMP,$COMMIT_HASH,$TOTAL_SIZE,$BOOTLOADER_SIZE,$APP_SIZE,$PARTITION_TABLE_SIZE" >> build_data_temp.csv
 
 	# Verify the file was modified correctly
 	if tail -n 1 build_data_temp.csv | grep -q "$COMMIT_HASH"; then
@@ -167,7 +188,7 @@ if [ "$should_append" = true ]; then
 				   GIT_INDEX_FILE=/tmp/git-index git write-tree)
 		
 		# Create commit
-		NEW_COMMIT=$(git commit-tree $NEW_TREE -p $BUILD_DATA_COMMIT -m "Update build data for commit $COMMIT_HASH")
+		NEW_COMMIT=$(git commit-tree $NEW_TREE -p $BUILD_DATA_COMMIT -m "Update build data for commit $COMMIT_HASH (target: $TARGET)")
 		
 		# Update the build_data branch reference
 		git update-ref refs/heads/build_data $NEW_COMMIT
@@ -185,7 +206,7 @@ if [ "$should_append" = true ]; then
 		exit 1
 	fi
 else
-	echo "⏭️ No changes needed, skipping commit and push"
+	echo "⏭️ No changes needed for target $TARGET, skipping commit and push"
 fi
 
-echo "📊 Done. Build data processed for commit: $COMMIT_HASH"
+echo "📊 Done. Build data processed for commit: $COMMIT_HASH (target: $TARGET)"

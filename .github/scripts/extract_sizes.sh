@@ -12,6 +12,10 @@ TIMESTAMP=$(date -u '+%Y-%m-%d %H:%M:%S UTC')
 # Get git commit hash
 GIT_COMMIT=$(git rev-parse --short HEAD)
 
+# Get target from environment (set by workflow)
+TARGET=${TARGET:-unknown}
+echo "Target: $TARGET"
+
 # Extract file sizes (in bytes)
 BOOTLOADER_SIZE=0
 PARTITION_TABLE_SIZE=0
@@ -39,6 +43,7 @@ TOTAL_SIZE=$((BOOTLOADER_SIZE + PARTITION_TABLE_SIZE + APP_SIZE))
 echo "Total binary size: $TOTAL_SIZE bytes"
 
 # Export to GitHub environment for use in later steps
+echo "TARGET=$TARGET" >> $GITHUB_ENV
 echo "TOTAL_SIZE=$TOTAL_SIZE" >> $GITHUB_ENV
 echo "BOOTLOADER_SIZE=$BOOTLOADER_SIZE" >> $GITHUB_ENV
 echo "PARTITION_TABLE_SIZE=$PARTITION_TABLE_SIZE" >> $GITHUB_ENV
@@ -46,4 +51,4 @@ echo "APP_SIZE=$APP_SIZE" >> $GITHUB_ENV
 echo "TIMESTAMP=$TIMESTAMP" >> $GITHUB_ENV
 echo "GIT_COMMIT=$GIT_COMMIT" >> $GITHUB_ENV
 
-echo "✅ Size extraction completed"
+echo "✅ Size extraction completed for target: $TARGET"
