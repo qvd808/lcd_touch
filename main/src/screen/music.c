@@ -226,9 +226,11 @@ static void progress_timer_cb(lv_timer_t *timer) {
   }
 }
 void music_update_progress(uint32_t progress_sec) {
+  lvgl_lock();
   if (progress_bar && current_time_label) {
     lv_bar_set_value(progress_bar, progress_sec, LV_ANIM_ON);
     lv_label_set_text_fmt(current_time_label, "%d:%02d",
-                          (int)(progress_sec / 60), +(int)(progress_sec % 60));
+                          (int)(progress_sec / 60), (int)(progress_sec % 60));
   }
+  lvgl_unlock();
 }

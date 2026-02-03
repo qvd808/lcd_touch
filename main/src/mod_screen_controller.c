@@ -47,3 +47,21 @@ void ui_controller_prev(void) {
   int prev_index = (current_index - 1 + SCREEN_COUNT) % SCREEN_COUNT;
   load_screen_with_anim(prev_index, LV_SCR_LOAD_ANIM_MOVE_RIGHT);
 }
+
+void gesture_event_cb(lv_event_t *e) {
+  lv_dir_t dir = lv_indev_get_gesture_dir(lv_indev_active());
+  switch (dir) {
+  case LV_DIR_LEFT:
+    ui_controller_next();
+    break;
+  case LV_DIR_RIGHT:
+    ui_controller_prev();
+    break;
+  default:
+    break;
+  }
+}
+
+void ui_init_gestures(lv_obj_t *scr) {
+  lv_obj_add_event_cb(scr, gesture_event_cb, LV_EVENT_GESTURE, NULL);
+}

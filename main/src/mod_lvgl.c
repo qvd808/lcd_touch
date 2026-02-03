@@ -169,27 +169,6 @@ static lv_display_t *mod_lvgl_init(const display_handle_t *display) {
 }
 
 
-void ui_init_gestures(lv_obj_t *scr) {
-  lv_obj_add_event_cb(scr, gesture_event_cb, LV_EVENT_GESTURE, NULL);
-}
-
-void gesture_event_cb(lv_event_t *e) {
-#if CONFIG_EXAMPLE_LCD_TOUCH_ENABLED
-  lv_dir_t dir = lv_indev_get_gesture_dir(lv_indev_active());
-
-  switch (dir) {
-  case LV_DIR_LEFT:
-    ui_controller_next();
-    break;
-  case LV_DIR_RIGHT:
-    ui_controller_prev();
-    break;
-  default:
-    break;
-  }
-#endif
-}
-
 
 void lvgl_task(void *arg) {
 
@@ -210,13 +189,21 @@ void lvgl_task(void *arg) {
   ESP_LOGI(TAG, "Starting LVGL task");
   uint32_t time_till_next_ms = 0;
   while (1) {
-    _lock_acquire(&lvgl_api_lock);
+    lvgl_lock();
     time_till_next_ms = lv_timer_handler();
-    _lock_release(&lvgl_api_lock);
+    lvgl_unlock();
     // in case of triggering a task watch dog time out
     time_till_next_ms = MAX(time_till_next_ms, LVGL_TASK_MIN_DELAY_MS);
     // in case of lvgl display not ready yet
     time_till_next_ms = MIN(time_till_next_ms, LVGL_TASK_MAX_DELAY_MS);
     usleep(1000 * time_till_next_ms);
   }
+}
+
+void lvgl_lock(void) {
+  _lock_acquire(&lvgl_api_lock);
+}
+
+void lvgl_unlock(void) {
+  _lock_release(&lvgl_api_lock);
 }

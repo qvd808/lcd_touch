@@ -136,7 +136,9 @@ void home_screen(lv_obj_t *scr) {
   lv_obj_add_event_cb(scr, home_screen_delete_cb, LV_EVENT_DELETE, NULL);
 }
 void home_update_steps(uint32_t steps) {
+  lvgl_lock();
   if (steps_label) {
     lv_label_set_text_fmt(steps_label, "%" PRIu32, steps);
   }
+  lvgl_unlock();
 }
