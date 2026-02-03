@@ -44,4 +44,10 @@ menu "Example Configuration"
         help
             This value is 1 if XPT2046 touch controller is selected, 0 otherwise.
 
+    config EXAMPLE_WIFI_ENABLED
+        bool "Enable WiFi"
+        default n
+        help
+            Enable or disable WiFi functionality.
+
 endmenu
