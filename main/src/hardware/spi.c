@@ -5,11 +5,11 @@
 
 static const char *TAG = "HAL_SPI";
 
-#define PIN_SCLK EXAMPLE_PIN_NUM_SCLK
-#define PIN_MOSI EXAMPLE_PIN_NUM_MOSI
-#define PIN_MISO EXAMPLE_PIN_NUM_MISO
+#define PIN_SCLK CONSTANT_PIN_NUM_SCLK
+#define PIN_MOSI CONSTANT_PIN_NUM_MOSI
+#define PIN_MISO CONSTANT_PIN_NUM_MISO
 
-#define MAX_TRANSFER_SIZE EXAMPLE_LCD_H_RES * 80 * sizeof(uint16_t)
+#define MAX_TRANSFER_SIZE CONSTANT_LCD_H_RES * 80 * sizeof(uint16_t)
 
 bool init_spi() {
 
