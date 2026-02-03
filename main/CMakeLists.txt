@@ -4,7 +4,6 @@ set(SOURCES
 	"src/hardware/spi.c"
 	"src/hardware/gpio.c"
 	"src/mod_lvgl.c"
-	"src/ui.c"
 	"src/scli.c"
 	"src/util.c"
 	"src/bluetooth.c"
@@ -12,7 +11,6 @@ set(SOURCES
 	"src/screen/home.c"
 	"src/mod_screen_controller.c"
 	"src/mod_state.c"
-	# "src/mod_wifi.c" -- Removed wifi for now
 )
 
 idf_component_register(
