@@ -21,11 +21,11 @@ display_handle_t display_init(void) {
   ESP_LOGI(TAG, "Install panel IO");
   esp_lcd_panel_io_handle_t io_handle = NULL;
   esp_lcd_panel_io_spi_config_t io_config = {
-      .dc_gpio_num = EXAMPLE_PIN_NUM_LCD_DC,
-      .cs_gpio_num = EXAMPLE_PIN_NUM_LCD_CS,
-      .pclk_hz = EXAMPLE_LCD_PIXEL_CLOCK_HZ,
-      .lcd_cmd_bits = EXAMPLE_LCD_CMD_BITS,
-      .lcd_param_bits = EXAMPLE_LCD_PARAM_BITS,
+      .dc_gpio_num = CONSTANT_PIN_NUM_LCD_DC,
+      .cs_gpio_num = CONSTANT_PIN_NUM_LCD_CS,
+      .pclk_hz = CONSTANT_LCD_PIXEL_CLOCK_HZ,
+      .lcd_cmd_bits = CONSTANT_LCD_CMD_BITS,
+      .lcd_param_bits = CONSTANT_LCD_PARAM_BITS,
       .spi_mode = 0,
       .trans_queue_depth = 10,
   };
@@ -35,15 +35,15 @@ display_handle_t display_init(void) {
 
   esp_lcd_panel_handle_t panel_handle = NULL;
   esp_lcd_panel_dev_config_t panel_config = {
-      .reset_gpio_num = EXAMPLE_PIN_NUM_LCD_RST,
+      .reset_gpio_num = CONSTANT_PIN_NUM_LCD_RST,
       .rgb_ele_order = LCD_RGB_ELEMENT_ORDER_BGR,
       .bits_per_pixel = 16,
   };
-#if CONFIG_EXAMPLE_LCD_CONTROLLER_ILI9341
+#if CONFIG_LCD_CONTROLLER_ILI9341
   ESP_LOGI(TAG, "Install ILI9341 panel driver");
   ESP_ERROR_CHECK(
       esp_lcd_new_panel_ili9341(io_handle, &panel_config, &panel_handle));
-#elif CONFIG_EXAMPLE_LCD_CONTROLLER_GC9A01
+#elif CONFIG_LCD_CONTROLLER_GC9A01
   ESP_LOGI(TAG, "Install GC9A01 panel driver");
   ESP_ERROR_CHECK(
       esp_lcd_new_panel_gc9a01(io_handle, &panel_config, &panel_handle));
@@ -51,7 +51,7 @@ display_handle_t display_init(void) {
 
   ESP_ERROR_CHECK(esp_lcd_panel_reset(panel_handle));
   ESP_ERROR_CHECK(esp_lcd_panel_init(panel_handle));
-#if CONFIG_EXAMPLE_LCD_CONTROLLER_GC9A01
+#if CONFIG_LCD_CONTROLLER_GC9A01
   ESP_ERROR_CHECK(esp_lcd_panel_invert_color(panel_handle, true));
 #endif
   ESP_ERROR_CHECK(esp_lcd_panel_mirror(panel_handle, true, false));
@@ -61,7 +61,7 @@ display_handle_t display_init(void) {
   ESP_ERROR_CHECK(esp_lcd_panel_disp_on_off(panel_handle, true));
 
   ESP_LOGI(TAG, "Turn on LCD backlight");
-  gpio_set_level(EXAMPLE_PIN_NUM_BK_LIGHT, EXAMPLE_LCD_BK_LIGHT_ON_LEVEL);
+  gpio_set_level(CONSTANT_PIN_NUM_BK_LIGHT, CONSTANT_LCD_BK_LIGHT_ON_LEVEL);
 
   display_handle_t display_handle = {.panel_handle = panel_handle,
                                      .io_handle = io_handle};

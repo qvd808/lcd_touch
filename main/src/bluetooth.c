@@ -577,7 +577,7 @@ void bluetooth_main_task(void *param) {
   ble_hs_cfg.gatts_register_cb = gatt_svr_register_cb;
   ble_hs_cfg.store_status_cb = ble_store_util_status_rr;
 
-  ble_hs_cfg.sm_io_cap = CONFIG_EXAMPLE_IO_TYPE;
+  ble_hs_cfg.sm_io_cap = CONSTANT_IO_TYPE;
   ble_hs_cfg.sm_sc = 1;
   ble_hs_cfg.sm_mitm = 1;
   ble_hs_cfg.sm_bonding = 1;

@@ -5,7 +5,7 @@
 
 static const char *TAG = "HAL_GPIO";
 
-#define BACK_LIGHT_PIN EXAMPLE_PIN_NUM_BK_LIGHT
+#define BACK_LIGHT_PIN CONSTANT_PIN_NUM_BK_LIGHT
 
 bool init_gpio() {
   ESP_LOGI(TAG, "Turn off LCD backlight");

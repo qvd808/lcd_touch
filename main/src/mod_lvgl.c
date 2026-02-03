@@ -25,7 +25,7 @@ static _lock_t lvgl_api_lock;
 
 static lv_display_rotation_t current_rotation = LV_DISPLAY_ROTATION_90;
 
-static void example_lvgl_port_update_callback(lv_display_t *disp) {
+static void ui_lvgl_port_update_callback(lv_display_t *disp) {
   esp_lcd_panel_handle_t panel_handle = lv_display_get_user_data(disp);
   lv_display_rotation_t rotation = lv_display_get_rotation(disp);
 
@@ -65,12 +65,12 @@ static bool notify_lvgl_flush_ready(esp_lcd_panel_io_handle_t panel_io,
 }
 
 static void increase_lvgl_tick(void *arg) {
-  lv_tick_inc(EXAMPLE_LVGL_TICK_PERIOD_MS);
+  lv_tick_inc(CONSTANT_LVGL_TICK_PERIOD_MS);
 }
 
 static void lvgl_flush_cb(lv_display_t *disp, const lv_area_t *area,
                           uint8_t *px_map) {
-  example_lvgl_port_update_callback(disp);
+  ui_lvgl_port_update_callback(disp);
   esp_lcd_panel_handle_t panel =
       (esp_lcd_panel_handle_t)lv_display_get_user_data(disp);
 
@@ -84,8 +84,8 @@ static void lvgl_flush_cb(lv_display_t *disp, const lv_area_t *area,
   esp_lcd_panel_draw_bitmap(panel, x1, y1, x2 + 1, y2 + 1, px_map);
 }
 
-static void example_lvgl_touch_cb(lv_indev_t *indev, lv_indev_data_t *data) {
-#if CONFIG_EXAMPLE_LCD_TOUCH_ENABLED
+static void ui_lvgl_touch_cb(lv_indev_t *indev, lv_indev_data_t *data) {
+#if CONFIG_LCD_TOUCH_ENABLED
   uint16_t touchpad_x[1] = {0};
   uint16_t touchpad_y[1] = {0};
   uint8_t touchpad_cnt = 0;
@@ -119,7 +119,7 @@ static void mod_lv_init_input(lv_display_t *display,
   lv_indev_set_type(indev, LV_INDEV_TYPE_POINTER);
   lv_indev_set_display(indev, display);
   lv_indev_set_user_data(indev, tp);
-  lv_indev_set_read_cb(indev, example_lvgl_touch_cb);
+  lv_indev_set_read_cb(indev, ui_lvgl_touch_cb);
 }
 
 /* -------------------- Public API -------------------- */
@@ -128,11 +128,11 @@ static lv_display_t *mod_lvgl_init(const display_handle_t *display) {
   ESP_LOGI(TAG, "Initialize LVGL");
   lv_init();
 
-  lv_display_t *disp = lv_display_create(EXAMPLE_LCD_H_RES, EXAMPLE_LCD_V_RES);
+  lv_display_t *disp = lv_display_create(CONSTANT_LCD_H_RES, CONSTANT_LCD_V_RES);
 
   /* Allocate draw buffers */
   size_t draw_buf_size =
-      EXAMPLE_LCD_H_RES * EXAMPLE_LVGL_DRAW_BUF_LINES * sizeof(lv_color16_t);
+      CONSTANT_LCD_H_RES * CONSTANT_LVGL_DRAW_BUF_LINES * sizeof(lv_color16_t);
 
   void *buf1 = spi_bus_dma_memory_alloc(LCD_HOST, draw_buf_size, 0);
   void *buf2 = spi_bus_dma_memory_alloc(LCD_HOST, draw_buf_size, 0);
@@ -153,7 +153,7 @@ static lv_display_t *mod_lvgl_init(const display_handle_t *display) {
   esp_timer_handle_t tick_timer;
   ESP_ERROR_CHECK(esp_timer_create(&tick_args, &tick_timer));
   ESP_ERROR_CHECK(
-      esp_timer_start_periodic(tick_timer, EXAMPLE_LVGL_TICK_PERIOD_MS * 1000));
+      esp_timer_start_periodic(tick_timer, CONSTANT_LVGL_TICK_PERIOD_MS * 1000));
 
   /* Register flush-ready callback */
   const esp_lcd_panel_io_callbacks_t cbs = {
